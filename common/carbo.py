@@ -1,15 +1,62 @@
 import scipy.spatial
 import numpy 
-import pybel
 import math
 import re
+import os
+
+from rdkit import Chem
+from rdkit.Chem import Draw,AllChem
 
 IDXSLCT = 5
+
+###############################################################
+
+class atom:
+
+  def __init__ (self, id, name, x, y, z, c):
+    self.id = id
+    self.name = name
+    self.coords = (x, y, z)
+    self.partialcharge = c
+  
+  def __repr__ (self):
+    line = "%6d %6s %10.5f %10.5f %10.5f %8.5f \n"%( \
+      self.id, self.name, self.coords[0], self.coords[1],
+      self.coords[2], self.partialcharge )
+
+    return line
+  
+###############################################################
+
+def mol2atomextractor (file=None):
+  
+  mols = []
+
+  with open(file, 'r') as f:
+      while not f.tell() == os.fstat(f.fileno()).st_size:
+        line = f.readline()
+        if line.startswith("@<TRIPOS>ATOM"):
+            line = f.readline()
+            mol = []
+            while not line.startswith("@<TRIPOS>BOND"):
+              sline = line.split()
+              if len(sline) != 9:
+                print("Error in ", line)
+                exit(1)
+              a = atom(int(sline[0]), sline[1], float(sline[2]), \
+                float(sline[3]),float(sline[4]), float(sline[8]) )
+              line = f.readline()
+              mol.append(a)
+            mols.append(mol)
+
+  return(mols)
+
+###############################################################
 
 def carbo_similarity (filename1, weightsname1, filename2, weightsname2, \
         STEPVAL, DELTAVAL, coulombconst):
 
-  # read weights file, this first nomalization is maybe useless
+  # read weights file, this first alization is maybe useless
   weights1 = []
   weights2 = []
   weightsfp1 = open(weightsname1)
@@ -26,43 +73,48 @@ def carbo_similarity (filename1, weightsname1, filename2, weightsname2, \
     values = re.split(' ', line)
 
     if len(values) < IDXSLCT+1:
-        print "Error in weight file size"
+        print("Error in weight file size")
         return 
   
     sum = sum + float(values[IDXSLCT])
 
     weights1.append(float(values[IDXSLCT]))
     idx = idx + 1
+
   for i in range(len(weights1)):
     weights1[i] = weights1[i] / sum
+  
   sum = 0.0
   weightsfp2.readline()
   idx = 0
+  
   for line in weightsfp2:
     values = re.split('\s+', line)
 
     if len(values) < IDXSLCT+1:
-        print "Error in weight file size"
+        print("Error in weight file size")
         return 
 
     sum = sum + float(values[IDXSLCT])
   
     weights2.append(float(values[IDXSLCT]))
     idx = idx + 1
+  
   for i in range(len(weights2)):
     weights2[i] = weights2[i] / sum
+  
   weightsfp1.close()
   weightsfp2.close()
   
-  # read first molecule in the files
-  mol1 = pybel.readfile("mol2", filename1).next()
-  mol2 = pybel.readfile("mol2", filename2).next()
-  
+  mols1 = mol2atomextractor (filename1)
+  mols2 = mol2atomextractor (filename1)
+
   # read data of first molecule
-  atomnum1 = len(mol1.atoms)
+  mol1 = mols1[0]
+  atomnum1 = len(mol1)
   mol1coord = numpy.zeros((atomnum1, 3))
   mol1charges = numpy.zeros((atomnum1, 1))
-  print "Molecule: " , mol1.title
+  print("Molecule: " , filename1)
   idx = 0
   for atom in mol1:
     mol1coord[idx,0] = atom.coords[0]
@@ -72,10 +124,11 @@ def carbo_similarity (filename1, weightsname1, filename2, weightsname2, \
     idx = idx + 1
   
   # read data of second molecule
-  atomnum2 = len(mol2.atoms)
+  mol2 = mols2[1]
+  atomnum2 = len(mol2)
   mol2coord = numpy.zeros((atomnum2, 3))
   mol2charges = numpy.zeros((atomnum2, 1))
-  print "Molecule: " , mol2.title
+  print("Molecule: " , filename2)
   idx = 0
   for atom in mol2:
     mol2coord[idx,0] = atom.coords[0]
@@ -98,39 +151,35 @@ def carbo_similarity (filename1, weightsname1, filename2, weightsname2, \
   ymax = ymax + DELTAVAL
   zmax = zmax + DELTAVAL
   
-  print "Grid will be used: ", xmin, ymin, zmin, xmax, ymax, zmax
+  print("Grid will be used: ", xmin, ymin, zmin, xmax, ymax, zmax)
   
   xnstep = int( ((xmax - xmin) / STEPVAL)+0.5)
   ynstep = int( ((ymax - ymin) / STEPVAL)+0.5)
   znstep = int( ((zmax - zmin) / STEPVAL)+0.5)
   
-  # read all molecules 
-  mol1list = list(pybel.readfile("mol2", filename1))
-  mol2list = list(pybel.readfile("mol2", filename2))
-  
   # check amount 
-  if (len(mol1list) != len(weights1)):
-    print "Error different size ", len(mol1list) , " vs ", len(weights1)
+  if (len(mols1) != len(weights1)):
+    print("Error different size ", len(mol1list) , " vs ", len(weights1))
     exit()
   
-  if (len(mol2list) != len(weights2)):
-    print "Error different size", len(mol2list) , " vs ", len(weights2)
+  if (len(mols2) != len(weights2)):
+    print("Error different size", len(mol2list) , " vs ", len(weights2))
     exit()
 
-  print "Mol1 has ", len(mol1list), " values "
-  print "Mol2 has ", len(mol2list), " values "
+  print("Mol1 has ", len(mols1), " values ")
+  print("Mol2 has ", len(mols2), " values ")
 
-  if len(mol1list) == 0 or len(mol2list) == 0:
-      print "Error no element"
+  if len(mols1) == 0 or len(mols2) == 0:
+      print("Error no element")
       return 
   
   mol1field = numpy.zeros((xnstep, ynstep, znstep))
   mol2field = numpy.zeros((xnstep, ynstep, znstep))
   
   xrefpoints = numpy.zeros(xnstep)
-  carboidxs = numpy.zeros((len(mol1list)*len(mol2list), xnstep))
-  weights = numpy.zeros(len(mol1list)*len(mol2list))
-  pweights = numpy.zeros(len(mol1list)*len(mol2list))
+  carboidxs = numpy.zeros((len(mols1)*len(mols2), xnstep))
+  weights = numpy.zeros(len(mols1)*len(mols2))
+  pweights = numpy.zeros(len(mols1)*len(mols2))
   
   # compute weight
   generalidx = 0
@@ -163,10 +212,10 @@ def carbo_similarity (filename1, weightsname1, filename2, weightsname2, \
   
       # read coord first molecule
       idx = 0
-      atomnum1 = len(mol1list[mol1idx].atoms)
+      atomnum1 = len(mols1[mol1idx])
       mol1coord = numpy.zeros((atomnum1, 3))
       mol1charges = numpy.zeros((atomnum1, 1))
-      for atom in mol1list[mol1idx]:
+      for atom in mols1[mol1idx]:
         mol1coord[idx,0] = atom.coords[0]
         mol1coord[idx,1] = atom.coords[1]
         mol1coord[idx,2] = atom.coords[2]
@@ -175,10 +224,10 @@ def carbo_similarity (filename1, weightsname1, filename2, weightsname2, \
       
       # read data of second molecule
       idx = 0
-      atomnum2 = len(mol2list[mol2idx].atoms)
+      atomnum2 = len(mols2[mol2idx])
       mol2coord = numpy.zeros((atomnum2, 3))
       mol2charges = numpy.zeros((atomnum2, 1))
-      for atom in mol2list[mol2idx]:
+      for atom in mols2[mol2idx]:
         mol2coord[idx,0] = atom.coords[0]
         mol2coord[idx,1] = atom.coords[1]
         mol2coord[idx,2] = atom.coords[2]
@@ -239,48 +288,48 @@ def carbo_similarity (filename1, weightsname1, filename2, weightsname2, \
             carboidx = num/math.sqrt(denum1 * denum2)
         
   
-        print refpoint[0,0], mol1idx, mol2idx, carboidx 
+        print(refpoint[0,0], mol1idx, mol2idx, carboidx) 
         xrefpoints[idx] = refpoint[0,0]
         carboidxs[generalidx,idx] = carboidx
   
         idx = idx + 1
       generalidx = generalidx + 1
   
-      print "Done ", generalidx, " of ", (len(weights1)*len(weights2))
+      print("Done ", generalidx, " of ", (len(weights1)*len(weights2)))
   
   stdev = carboidxs.std(0)
   meanmtx = carboidxs.mean(0)
   
-  print "Mead and stdev"
+  print("Mead and stdev")
   idx = 0
   for std in stdev:
-    print xrefpoints[idx], " ", meanmtx[idx] , " ", std
+    print(xrefpoints[idx], " ", meanmtx[idx] , " ", std)
     idx = idx + 1
   
-  print "full matrix"
-  print carboidxs.mean(0)
-  print carboidxs.std(0)
+  print("full matrix")
+  print(carboidxs.mean(0))
+  print(carboidxs.std(0))
   
-  print "Weighted Mead and stdev"
+  print("Weighted Mead and stdev")
   waverage = numpy.average(carboidxs, 0, weights)
   wvariance = numpy.average((carboidxs-waverage)**2, 0, weights)
   idx = 0
   for std in wvariance:
-    print xrefpoints[idx], " ", waverage[idx] , " ", std
+    print(xrefpoints[idx], " ", waverage[idx] , " ", std)
     idx = idx + 1
   
-  print "full matrix"
-  print waverage
-  print wvariance
+  print("full matrix")
+  print(waverage)
+  print(wvariance)
   
-  print "PWeighted Mead and stdev"
+  print("PWeighted Mead and stdev")
   waverage = numpy.average(carboidxs, 0, pweights)
   wvariance = numpy.average((carboidxs-waverage)**2, 0, pweights)
   idx = 0
   for std in wvariance:
-    print xrefpoints[idx], " ", waverage[idx] , " ", std
+    print(xrefpoints[idx], " ", waverage[idx] , " ", std)
     idx = idx + 1
   
-  print "full matrix"
-  print waverage
-  print wvariance
+  print("full matrix")
+  print(waverage)
+  print(wvariance)

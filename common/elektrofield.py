@@ -37,7 +37,7 @@ def mean_elekfield (probecharge, filename, weifilename, DELTAVAL, \
   weightsfp.close()
   
   # read first molecule in the files
-  mol = pybel.readfile("mol2", filename).next()
+  mol = next(pybel.readfile("mol2", filename))
   
   # read data of first molecule
   atomnum = len(mol.atoms)
@@ -65,7 +65,7 @@ def mean_elekfield (probecharge, filename, weifilename, DELTAVAL, \
   ymax = ymax + DELTAVAL
   zmax = zmax + DELTAVAL
   
-  print "Grid will be used: ", xmin, ymin, zmin, xmax, ymax, zmax
+  print("Grid will be used: ", xmin, ymin, zmin, xmax, ymax, zmax)
   
   xnstep = int( ((xmax - xmin) / STEPVAL)+0.5)
   ynstep = int( ((ymax - ymin) / STEPVAL)+0.5)
@@ -76,13 +76,13 @@ def mean_elekfield (probecharge, filename, weifilename, DELTAVAL, \
   
   # check amount 
   if (len(mollist) != len(weights)):
-    print "Error different size"
+    print("Error different size")
     exit()
   
   molfield = numpy.zeros((xnstep, ynstep, znstep))
   
   for molidx in range(0,len(weights)):
-    print "Step ", molidx+1, " of ", len(weights)
+    print("Step ", molidx+1, " of ", len(weights))
     # read coord first molecule
     idx = 0
     atomnum = len(mollist[molidx].atoms)
@@ -170,7 +170,7 @@ def elekfield (probecharge, mol1coord, mol1charges, xmin, ymin, \
   ynstep = int((ymax - ymin)/STEPVAL) + 1
   znstep = int((zmax - zmin)/STEPVAL) + 1
 
-  print xnstep, ynstep, znstep
+  print(xnstep, ynstep, znstep)
 
   mol1field = numpy.zeros((xnstep, ynstep, znstep))
 
@@ -229,7 +229,7 @@ def elekfield (probecharge, mol1coord, mol1charges, xmin, ymin, \
 def computelek_and_get_centroids (filename, probecharge, STEPVAL, \
         MINDIM, NUMOFCLUST, DELTAVAL):
 
-  mol = pybel.readfile("mol2", filename).next()
+  mol = next(pybel.readfile("mol2", filename))
 
   atomnum = len(mol.atoms)
   mol1coord = numpy.zeros((atomnum, 3))
@@ -250,13 +250,13 @@ def computelek_and_get_centroids (filename, probecharge, STEPVAL, \
   topy = max(max(mol1coord[:,1]),max(mol1coord[:,1])) + DELTAVAL
   topz = max(max(mol1coord[:,2]),max(mol1coord[:,2])) + DELTAVAL
 
-  print "Computing elek field ..."
+  print("Computing elek field ...")
 
   energy, xset, yset, zset, evalset, ixyz_to_xyzval_map, \
           xyzval_to_ixyz_map = elekfield (probecharge, mol1coord, \
           mol1charges, botx, boty, botz, topx, topy, topz, STEPVAL)
 
-  print "Done"
+  print("Done")
 
   dx = STEPVAL
   dy = STEPVAL
@@ -297,7 +297,7 @@ def computelek_and_get_centroids (filename, probecharge, STEPVAL, \
   zmin = []
   minvals = []
 
-  print "Computing minima..."
+  print("Computing minima...")
   
   for ix in range(dimcube,nx-dimcube):
     for iy in range(dimcube,ny-dimcube):
@@ -347,9 +347,9 @@ def computelek_and_get_centroids (filename, probecharge, STEPVAL, \
             ymin.append(y)
             zmin.append(z)
   
-  print "Done "
+  print("Done ")
   
-  print "Start clustering ..."
+  print("Start clustering ...")
   
   pointstocluster = numpy.zeros((len(minvals), 3))
   
@@ -379,7 +379,7 @@ def computelek_and_get_centroids (filename, probecharge, STEPVAL, \
   print clustermass
   ''' 
 
-  print "Done." 
+  print("Done.") 
 
   #print centroids
   #print len(centroids)
@@ -413,13 +413,13 @@ def computelek_and_get_centroids (filename, probecharge, STEPVAL, \
 def compute_meanelek_and_get_centroids (filename, weifilename, probecharge, \
         STEPVAL, MINDIM, NUMOFCLUST, DELTAVAL):
 
-  print "Computing mean elek field ..."
+  print("Computing mean elek field ...")
 
   energy, xset, yset, zset, evalset, ixyz_to_xyzval_map, \
           xyzval_to_ixyz_map = mean_elekfield (probecharge, filename, \
           weifilename, DELTAVAL, STEPVAL)
 
-  print "Done"
+  print("Done")
 
   dx = STEPVAL
   dy = STEPVAL
@@ -449,7 +449,7 @@ def compute_meanelek_and_get_centroids (filename, weifilename, probecharge, \
   zmin = []
   minvals = []
 
-  print "Computing minima..."
+  print("Computing minima...")
   
   for ix in range(dimcube,nx-dimcube):
     for iy in range(dimcube,ny-dimcube):
@@ -499,9 +499,9 @@ def compute_meanelek_and_get_centroids (filename, weifilename, probecharge, \
             ymin.append(y)
             zmin.append(z)
   
-  print "Done "
+  print("Done ")
   
-  print "Start clustering ..."
+  print("Start clustering ...")
   
   pointstocluster = numpy.zeros((len(minvals), 3))
   
@@ -509,14 +509,14 @@ def compute_meanelek_and_get_centroids (filename, weifilename, probecharge, \
     pointstocluster[i,0] = xmin[i]
     pointstocluster[i,1] = ymin[i]
     pointstocluster[i,2] = zmin[i]
-    print "H   ", xmin[i], ymin[i], zmin[i]
+    print("H   ", xmin[i], ymin[i], zmin[i])
 
   #return pointstocluster
   # se faccio questo i centroid non sono piu' ciorretti nelle coordinate 
   #inpoint = cluster.vq.whiten (pointstocluster)
 
   if (len(minvals) <= NUMOFCLUST):
-    print "Num of cluster is >= of minvals"
+    print("Num of cluster is >= of minvals")
     if (len(minvals) == NUMOFCLUST):
       return pointstocluster
     exit(1)
@@ -524,7 +524,7 @@ def compute_meanelek_and_get_centroids (filename, weifilename, probecharge, \
   centroids, selected = cluster.vq.kmeans2 (pointstocluster, NUMOFCLUST)
           #iter=100, thresh=1e-9)
 
-  print "Done." 
+  print("Done.") 
 
   return centroids
 

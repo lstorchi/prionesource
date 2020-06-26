@@ -46,7 +46,7 @@ def readkontfile (kontname):
   energy = numpy.empty([1,1,1], float)
 
   if ((dim * 2) + 1) != lineamnt :
-    print "Maybe invalid kont file"
+    print("Maybe invalid kont file")
     exit(1)
 
   fk = open(kontname)
@@ -122,8 +122,8 @@ def energytofile (energy, name, botx, boty, botz, STEPVAL):
   ny = energy.shape[1]
   nz = energy.shape[2]
 
-  print "Writing final kont... "
-  print "nx: ", nx, " ny: ", ny, " nz: ", nz
+  print("Writing final kont... ")
+  print("nx: ", nx, " ny: ", ny, " nz: ", nz)
 
   counter = 1
   for i in range(0, nz):
@@ -271,7 +271,7 @@ def compute_grid_avg_field (filename1, weightfile, STEPVAL, DELTAVAL, \
   #zmin = -29.000
   #zmax =  30.000
   
-  print "Grid will be used: ", xmin, ymin, zmin, xmax, ymax, zmax
+  print("Grid will be used: ", xmin, ymin, zmin, xmax, ymax, zmax)
   
   xnsteps = int((xmax - xmin) / 1.0) + 1
   
@@ -286,8 +286,8 @@ def compute_grid_avg_field (filename1, weightfile, STEPVAL, DELTAVAL, \
   weightsfp1.close()
   
   if (len(mol1list) != len(weights1)):
-    print "Dimension error ", len(mol1list) , " vs " , \
-      len(weights1)
+    print("Dimension error ", len(mol1list) , " vs " , \
+      len(weights1))
     exit(1)
   
   energy = numpy.empty([1,1,1], float)
@@ -330,12 +330,12 @@ def compute_grid_avg_field (filename1, weightfile, STEPVAL, DELTAVAL, \
     # read kont file
     energy1 = readkontfile(kontname)
   
-    print "nx: ", energy1.shape[0], " ny: ", energy1.shape[1], \
-        " nz: ", energy1.shape[2]
+    print("nx: ", energy1.shape[0], " ny: ", energy1.shape[1], \
+        " nz: ", energy1.shape[2])
   
     ifextrm ("./"+kontname)
   
-    print "Dealing with: ", kontname, " w: ", weights1[globalindex]
+    print("Dealing with: ", kontname, " w: ", weights1[globalindex])
   
     if  globalindex == 0:
       nx = energy1.shape[0]
@@ -362,7 +362,7 @@ def read_kontfile (kontname):
   dim = (lineamnt - 1)/2
  
   if ((dim * 2) + 1) != lineamnt :
-    print "Maybe invalid kont file"
+    print("Maybe invalid kont file")
     exit(1)
  
   fk = open(kontname)

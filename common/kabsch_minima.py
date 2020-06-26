@@ -29,12 +29,12 @@ def return_rotation_matrix (coord_from=None, coord_to=None):
                                                         
   R = dot(transpose(V), dot(D, transpose(U)))
 
-  print "Verify rotation matrix "
-  print "det: (should be +/-1)" , det(R)
-  print "transpose matrix should be equal to inverse matrix" 
-  print transpose(R)
-  print " "
-  print inv(R)
+  print("Verify rotation matrix ")
+  print("det: (should be +/-1)" , det(R))
+  print("transpose matrix should be equal to inverse matrix") 
+  print(transpose(R))
+  print(" ")
+  print(inv(R))
             
   return R, centroid_from, centroid_to
 

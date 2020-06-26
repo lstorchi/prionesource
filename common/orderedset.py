@@ -30,11 +30,11 @@ class OrderedSet(object):
 
     def __iter__(self):
         curnode = self._start
-        nextnode = curnode.next
+        nextnode = curnode.__next__
 
         while True:
             if hasattr(curnode, 'next'):
-                curnode = curnode.next
+                curnode = curnode.__next__
             elif hasattr(nextnode, 'next'):
                 curnode = nextnode
             else:
@@ -44,7 +44,7 @@ class OrderedSet(object):
             if type(curnode) is _SentinalNode:
                 return
 
-            nextnode = curnode.next
+            nextnode = curnode.__next__
             yield curnode.content
 
     def __reversed__(self):
@@ -105,7 +105,7 @@ class OrderedSet(object):
 
     def _insertatnode(self, node, element):
         left = node
-        right = node.next
+        right = node.__next__
         if element in self._map:
             if self._allow_move:
                 self.remove(element)
@@ -137,11 +137,11 @@ class OrderedSet(object):
         node = self._map.pop(element)
         assert type(node) is not _SentinalNode
         left = node.prev
-        right = node.next
+        right = node.__next__
         left.next = right
         right.prev = node.prev
         del node.prev
-        del node.next
+        del node.__next__
 
 
 class _Node(object):
