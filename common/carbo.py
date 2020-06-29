@@ -4,9 +4,6 @@ import math
 import re
 import os
 
-from rdkit import Chem
-from rdkit.Chem import Draw,AllChem
-
 IDXSLCT = 5
 
 ###############################################################
@@ -41,8 +38,7 @@ def mol2atomextractor (file=None):
             while not line.startswith("@<TRIPOS>BOND"):
               sline = line.split()
               if len(sline) != 9:
-                print("Error in ", line)
-                exit(1)
+                raise Exception("Error in "+line)
               a = atom(int(sline[0]), sline[1], float(sline[2]), \
                 float(sline[3]),float(sline[4]), float(sline[8]) )
               line = f.readline()
@@ -54,7 +50,7 @@ def mol2atomextractor (file=None):
 ###############################################################
 
 def carbo_similarity (filename1, weightsname1, filename2, weightsname2, \
-        STEPVAL, DELTAVAL, coulombconst):
+        STEPVAL, DELTAVAL, coulombconst, verbose = False):
 
   # read weights file, this first alization is maybe useless
   weights1 = []
@@ -73,8 +69,7 @@ def carbo_similarity (filename1, weightsname1, filename2, weightsname2, \
     values = re.split(' ', line)
 
     if len(values) < IDXSLCT+1:
-        print("Error in weight file size")
-        return 
+      raise Exception("Error in weight file size")
   
     sum = sum + float(values[IDXSLCT])
 
@@ -92,8 +87,7 @@ def carbo_similarity (filename1, weightsname1, filename2, weightsname2, \
     values = re.split('\s+', line)
 
     if len(values) < IDXSLCT+1:
-        print("Error in weight file size")
-        return 
+      raise Exception("Error in weight file size")
 
     sum = sum + float(values[IDXSLCT])
   
@@ -105,16 +99,26 @@ def carbo_similarity (filename1, weightsname1, filename2, weightsname2, \
   
   weightsfp1.close()
   weightsfp2.close()
-  
-  mols1 = mol2atomextractor (filename1)
-  mols2 = mol2atomextractor (filename1)
+
+  mols1 = None
+  mols2 = None
+
+  try:
+    mols1 = mol2atomextractor (filename1)
+    mols2 = mol2atomextractor (filename1)
+  except Exception as exp:
+    raise Exception(exp)
+
+  if (len(mols1) < 1) or (len(mols2) < 1):
+    raise Exception("Error in the number of molecules per file")
 
   # read data of first molecule
   mol1 = mols1[0]
   atomnum1 = len(mol1)
   mol1coord = numpy.zeros((atomnum1, 3))
   mol1charges = numpy.zeros((atomnum1, 1))
-  print("Molecule: " , filename1)
+  if verbose:
+    print("Molecule: " , filename1)
   idx = 0
   for atom in mol1:
     mol1coord[idx,0] = atom.coords[0]
@@ -128,7 +132,8 @@ def carbo_similarity (filename1, weightsname1, filename2, weightsname2, \
   atomnum2 = len(mol2)
   mol2coord = numpy.zeros((atomnum2, 3))
   mol2charges = numpy.zeros((atomnum2, 1))
-  print("Molecule: " , filename2)
+  if verbose:
+    print("Molecule: " , filename2)
   idx = 0
   for atom in mol2:
     mol2coord[idx,0] = atom.coords[0]
@@ -151,7 +156,8 @@ def carbo_similarity (filename1, weightsname1, filename2, weightsname2, \
   ymax = ymax + DELTAVAL
   zmax = zmax + DELTAVAL
   
-  print("Grid will be used: ", xmin, ymin, zmin, xmax, ymax, zmax)
+  if verbose:
+    print("Grid will be used: ", xmin, ymin, zmin, xmax, ymax, zmax)
   
   xnstep = int( ((xmax - xmin) / STEPVAL)+0.5)
   ynstep = int( ((ymax - ymin) / STEPVAL)+0.5)
@@ -159,19 +165,19 @@ def carbo_similarity (filename1, weightsname1, filename2, weightsname2, \
   
   # check amount 
   if (len(mols1) != len(weights1)):
-    print("Error different size ", len(mol1list) , " vs ", len(weights1))
-    exit()
+    raise Exception("Error different size "+str(len(mol1list))+ \
+            " vs "+str(len(weights1)))
   
   if (len(mols2) != len(weights2)):
-    print("Error different size", len(mol2list) , " vs ", len(weights2))
-    exit()
+    raise Exception("Error different size "+str(len(mol2list))+ \
+            " vs "+str(len(weights2)))
 
-  print("Mol1 has ", len(mols1), " values ")
-  print("Mol2 has ", len(mols2), " values ")
+  if verbose:
+    print("Mol1 has %5d "%(len(mols1)) + " values ")
+    print("Mol2 has %5d "%(len(mols2)) + " values ")
 
   if len(mols1) == 0 or len(mols2) == 0:
-      print("Error no element")
-      return 
+      raise Exception("Error no element")
   
   mol1field = numpy.zeros((xnstep, ynstep, znstep))
   mol2field = numpy.zeros((xnstep, ynstep, znstep))
@@ -204,10 +210,13 @@ def carbo_similarity (filename1, weightsname1, filename2, weightsname2, \
   for generalidx in range(0,len(pweights)):
     pweights[generalidx] = pweights[generalidx] / sum
   
-  
+  if verbose:
+    print("")
+    print("Start main computation")
+    print("")
+
   generalidx = 0
   for mol1idx in range(0,len(weights1)):
-  
     for mol2idx in range(0,len(weights2)):
   
       # read coord first molecule
@@ -263,7 +272,7 @@ def carbo_similarity (filename1, weightsname1, filename2, weightsname2, \
               # atomi a destra sinistra basso alto ... 
               ep1 = coulombconst * (mol1charges/dist1)
               sum1 = numpy.sum(ep1) 
-            #per valurae ad esempio se non prendo i punti interni 
+              #per valurae ad esempio se non prendo i punti interni 
             #else:
             #  print refpoint[0,0], refpoint[0,1], refpoint[0,2], sum1
         
@@ -287,49 +296,18 @@ def carbo_similarity (filename1, weightsname1, filename2, weightsname2, \
         else:
             carboidx = num/math.sqrt(denum1 * denum2)
         
-  
-        print(refpoint[0,0], mol1idx, mol2idx, carboidx) 
+        if verbose:
+          print("%10.5f %5d %5d %10.5f"%(refpoint[0,0], mol1idx, mol2idx, carboidx)) 
+
         xrefpoints[idx] = refpoint[0,0]
         carboidxs[generalidx,idx] = carboidx
   
         idx = idx + 1
       generalidx = generalidx + 1
   
-      print("Done ", generalidx, " of ", (len(weights1)*len(weights2)))
-  
-  stdev = carboidxs.std(0)
-  meanmtx = carboidxs.mean(0)
-  
-  print("Mead and stdev")
-  idx = 0
-  for std in stdev:
-    print(xrefpoints[idx], " ", meanmtx[idx] , " ", std)
-    idx = idx + 1
-  
-  print("full matrix")
-  print(carboidxs.mean(0))
-  print(carboidxs.std(0))
-  
-  print("Weighted Mead and stdev")
-  waverage = numpy.average(carboidxs, 0, weights)
-  wvariance = numpy.average((carboidxs-waverage)**2, 0, weights)
-  idx = 0
-  for std in wvariance:
-    print(xrefpoints[idx], " ", waverage[idx] , " ", std)
-    idx = idx + 1
-  
-  print("full matrix")
-  print(waverage)
-  print(wvariance)
-  
-  print("PWeighted Mead and stdev")
-  waverage = numpy.average(carboidxs, 0, pweights)
-  wvariance = numpy.average((carboidxs-waverage)**2, 0, pweights)
-  idx = 0
-  for std in wvariance:
-    print(xrefpoints[idx], " ", waverage[idx] , " ", std)
-    idx = idx + 1
-  
-  print("full matrix")
-  print(waverage)
-  print(wvariance)
+      if verbose:
+        print("Done %5d of %5d "%(generalidx, (len(weights1)*len(weights2))))
+        print("")
+
+   
+  return (carboidxs, xrefpoints, weights, pweights)

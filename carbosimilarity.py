@@ -1,4 +1,5 @@
 import sys
+import numpy
 import argparse
 
 sys.path.append("./common")
@@ -18,6 +19,8 @@ if __name__ == "__main__":
       required=False, default=STEPVAL, type=float)
     parser.add_argument("-d","--deltaval", help="input delta value defaul="+str(DELTAVAL), \
       required=False, default=DELTAVAL, type=float)
+    parser.add_argument("-v","--verbose", help="Verbose mode on", \
+      required=False, default=False, action="store_true")
 
     args = parser.parse_args()
 
@@ -34,7 +37,44 @@ if __name__ == "__main__":
 
     filename2 = args.file2.split(",")[0]
     weightsname2 = args.file2.split(",")[1] 
-      
-    carbo.carbo_similarity (filename1, weightsname1, filename2, weightsname2, \
-        STEPVAL, DELTAVAL, coulombconst)
+  
+    try:
+      carboidxs, xrefpoints, weights, pweights = carbo.carbo_similarity (\
+        filename1, weightsname1, filename2, weightsname2, \
+          args.stepvalue, args.deltaval, coulombconst, args.verbose)
 
+      stdev = carboidxs.std(0)
+      meanmtx = carboidxs.mean(0)
+  
+      print("")
+      print("Final Mean and stdev")
+      for idx, std in enumerate(stdev):
+        print("%+11.8e %+11.8e %+11.8e"%(xrefpoints[idx], meanmtx[idx] , std))
+  
+      #print("Full matrix")
+      #print(carboidxs.mean(0))
+      #print(carboidxs.std(0))
+  
+      print("Weighted Mead and stdev")
+      waverage = numpy.average(carboidxs, 0, weights)
+      wvariance = numpy.average((carboidxs-waverage)**2, 0, weights)
+      for idx, std in enumerate(wvariance):
+        print("%+11.8e %+11.8e %+11.8e"%(xrefpoints[idx], waverage[idx] , std))
+  
+      #print("full matrix")
+      #print(waverage)
+      #print(wvariance)
+  
+      print("PWeighted Mead and stdev")
+      waverage = numpy.average(carboidxs, 0, pweights)
+      wvariance = numpy.average((carboidxs-waverage)**2, 0, pweights)
+      for idx, std in enumerate(wvariance):
+        print("%+11.8e %+11.8e %+11.8e"%(xrefpoints[idx], waverage[idx] , std))
+  
+      #print("full matrix")
+      #print(waverage)
+      #Sprint(wvariance)
+
+    except Exception as exp:
+      print(exp)
+      
