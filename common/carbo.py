@@ -78,8 +78,11 @@ def get_damped_eps (refpoint, mol1coord, mol1charges, \
     dampsfactors.append(df)
     print(df)
 
+  # can compute once at the beginning need and stored per each point in the grid
+  # compute end graficalli check 
+
+  
   print(dampsfactors)
-    
 
   #d = get_distance_from_line (numpy.asarray( [4, 2, 4]) \
   #   ,  numpy.asarray([5, 5, 9]), numpy.asarray([1, 1, 2]))
