@@ -25,7 +25,9 @@ if __name__ == "__main__":
       required=False, default=False, action="store_true")
     parser.add_argument("--show", help="Show plot", \
       required=False, default=False, action="store_true")
-      
+    parser.add_argument("--damped", help="Use damped approache", \
+      required=False, default=False, action="store_true")
+
     args = parser.parse_args()
 
     if len(args.file1.split(",")) != 2:
@@ -45,7 +47,8 @@ if __name__ == "__main__":
     try:
       carboidxs, xrefpoints, weights, pweights = carbo.carbo_similarity (\
         filename1, weightsname1, filename2, weightsname2, \
-          args.stepvalue, args.deltaval, coulombconst, args.verbose)
+          args.stepvalue, args.deltaval, coulombconst, args.verbose, \
+            args.damped)
 
       stdev = carboidxs.std(0)
       meanmtx = carboidxs.mean(0)

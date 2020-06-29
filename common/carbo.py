@@ -8,6 +8,21 @@ IDXSLCT = 5
 
 ###############################################################
 
+def get_distance_from_line (lp1, lp2, p0):
+  
+  # equation of ile sta + t * dir
+  # dir = lp2 - lp1
+  # sta = lp1
+
+  # lp1 and lp2 define the line
+  den = numpy.sqrt(numpy.sum(numpy.square(lp2 - lp1))) 
+  cp = numpy.cross (p0 - lp1, p0 - lp2)
+  num = numpy.sqrt(numpy.sum(numpy.square(cp))) 
+
+  return num / den
+
+###############################################################
+
 class atom:
 
   def __init__ (self, id, name, x, y, z, c):
@@ -23,6 +38,68 @@ class atom:
 
     return line
   
+###############################################################
+
+def get_eps (refpoint, mol1coord, mol1charges, \
+  mol2coord, mol2charges, coulombconst):
+            
+  #print refpoint[0,0], refpoint[0,1], refpoint[0,2], 1.0
+  dist1 = scipy.spatial.distance.cdist(mol1coord,refpoint)
+  dist2 = scipy.spatial.distance.cdist(mol2coord,refpoint)
+        
+  sum1 = 0.0
+  sum2 = 0.0
+        
+  if (dist1.min() > 1.0):
+    ep1 = coulombconst * (mol1charges/dist1)
+    sum1 = numpy.sum(ep1) 
+       
+  if (dist2.min() > 1.0):
+    ep2 = coulombconst * (mol2charges/dist2)
+    sum2 = numpy.sum(ep2)
+
+  return sum1, sum2
+
+###############################################################
+
+def get_damped_eps (refpoint, mol1coord, mol1charges, \
+  mol2coord, mol2charges, coulombconst):
+            
+  #print refpoint[0,0], refpoint[0,1], refpoint[0,2], 1.0
+  dist1 = scipy.spatial.distance.cdist(mol1coord, refpoint)
+  dist2 = scipy.spatial.distance.cdist(mol2coord, refpoint)
+  
+  avgatomcr = 3.0
+  dampsfactors = []
+  # compute dumping values
+  for p2 in mol1coord:
+    dists = [get_distance_from_line(refpoint, p2, p0) for p0 in mol1coord]
+    df = sum(d < avgatomcr for d in dists)
+    dampsfactors.append(df)
+    print(df)
+
+  print(dampsfactors)
+    
+
+  #d = get_distance_from_line (numpy.asarray( [4, 2, 4]) \
+  #   ,  numpy.asarray([5, 5, 9]), numpy.asarray([1, 1, 2]))
+  # chec 2.59 ...
+
+  exit(1)
+
+  sum1 = 0.0
+  sum2 = 0.0
+        
+  if (dist1.min() > 1.0):
+    ep1 = coulombconst * (mol1charges/dist1)
+    sum1 = numpy.sum(ep1) 
+       
+  if (dist2.min() > 1.0):
+    ep2 = coulombconst * (mol2charges/dist2)
+    sum2 = numpy.sum(ep2)
+
+  return sum1, sum2
+
 ###############################################################
 
 def mol2atomextractor (file=None):
@@ -50,7 +127,7 @@ def mol2atomextractor (file=None):
 ###############################################################
 
 def carbo_similarity (filename1, weightsname1, filename2, weightsname2, \
-        STEPVAL, DELTAVAL, coulombconst, verbose = False):
+        STEPVAL, DELTAVAL, coulombconst, verbose = False, damped = False):
 
   # read weights file, this first alization is maybe useless
   weights1 = []
@@ -260,26 +337,15 @@ def carbo_similarity (filename1, weightsname1, filename2, weightsname2, \
           for iz in range(0,znstep):
             refpoint[0,2] = refpoint[0,2] + STEPVAL
             
-            #print refpoint[0,0], refpoint[0,1], refpoint[0,2], 1.0
-            dist1 = scipy.spatial.distance.cdist(mol1coord,refpoint)
-            dist2 = scipy.spatial.distance.cdist(mol2coord,refpoint)
-        
-            sum1 = 0.0
-            sum2 = 0.0
-        
-            if (dist1.min() > 1.0):
-              # per essere certo che non sono interno posso valuate se ho 
-              # atomi a destra sinistra basso alto ... 
-              ep1 = coulombconst * (mol1charges/dist1)
-              sum1 = numpy.sum(ep1) 
-              #per valurae ad esempio se non prendo i punti interni 
-            #else:
-            #  print refpoint[0,0], refpoint[0,1], refpoint[0,2], sum1
-        
-            if (dist2.min() > 1.0):
-              ep2 = coulombconst * (mol2charges/dist2)
-              sum2 = numpy.sum(ep2)
-      
+            sum1 = sum2 = 0.0
+
+            if damped:
+              sum1, sum2 = get_damped_eps (refpoint, mol1coord, mol1charges, \
+                mol2coord, mol2charges, coulombconst)
+            else:
+              sum1, sum2 = get_eps (refpoint, mol1coord, mol1charges, \
+                mol2coord, mol2charges, coulombconst)
+
             mol1field[ix,iy,iz] = mol1field[ix,iy,iz] + sum1
             mol2field[ix,iy,iz] = mol2field[ix,iy,iz] + sum2
         
@@ -303,11 +369,11 @@ def carbo_similarity (filename1, weightsname1, filename2, weightsname2, \
         carboidxs[generalidx,idx] = carboidx
   
         idx = idx + 1
+
       generalidx = generalidx + 1
   
       if verbose:
         print("Done %5d of %5d "%(generalidx, (len(weights1)*len(weights2))))
         print("")
-
    
   return (carboidxs, xrefpoints, weights, pweights)
