@@ -4,6 +4,8 @@ import math
 import re
 import os
 
+from scipy.io import FortranFile
+
 IDXSLCT = 5
 
 ###############################################################
@@ -62,9 +64,56 @@ def get_eps (refpoint, mol1coord, mol1charges, \
 
 ###############################################################
 
+def read_delphi_file (filename):
+
+  f = FortranFile(filename, 'r' )
+
+  #character*20 uplbl
+  #character*10 nxtlbl,character*60 toplbl
+  #real*4 phi(65,65,65)
+  #character*16 botlbl
+  #real*4 scale,oldmid(3)
+
+  uplbl = f.read_record('a20')
+  nxtolbl = f.read_record('a70')
+  epmap = f.read_reals(dtype='float32').reshape((65,65,65), order="F")
+  botlbl = f.read_record('a16')
+  scalemin = f.read_reals(dtype='float32')
+
+  scale = scalemin[0]
+  oldmid = scalemin[1:4]
+
+  idx = 1
+  for iz in range(65):
+    IZ = iz + 1
+    for ix in range(65):
+      IX = ix + 1
+      for iy in range(65):
+        IY = iy + 1
+
+        x = (IX - 33)/scale + oldmid[0]
+        y = (IY - 33)/scale + oldmid[1]
+        z = (IZ - 33)/scale + oldmid[2]
+
+        print("%6d %8.3f %8.3f %8.3f"%(idx, x, y, z))
+
+        idx += 1
+
+  print("EP")
+  for iz in range(65):
+    for ix in range(65):
+      for iy in range(65):
+        print("%8.3f"%(epmap[ix, iy, iz]))
+
+  f.close()
+
+###############################################################
+
 def get_damped_eps (refpoint, mol1coord, mol1charges, \
   mol2coord, mol2charges, coulombconst):
-            
+
+  raise Exception("To be implemented")
+
   #print refpoint[0,0], refpoint[0,1], refpoint[0,2], 1.0
   dist1 = scipy.spatial.distance.cdist(mol1coord, refpoint)
   dist2 = scipy.spatial.distance.cdist(mol2coord, refpoint)
@@ -81,14 +130,12 @@ def get_damped_eps (refpoint, mol1coord, mol1charges, \
   # can compute once at the beginning need and stored per each point in the grid
   # compute end graficalli check 
 
-  
-  print(dampsfactors)
+  #print(dampsfactors)
 
   #d = get_distance_from_line (numpy.asarray( [4, 2, 4]) \
   #   ,  numpy.asarray([5, 5, 9]), numpy.asarray([1, 1, 2]))
   # chec 2.59 ...
 
-  exit(1)
 
   sum1 = 0.0
   sum2 = 0.0
@@ -342,12 +389,15 @@ def carbo_similarity (filename1, weightsname1, filename2, weightsname2, \
             
             sum1 = sum2 = 0.0
 
-            if damped:
-              sum1, sum2 = get_damped_eps (refpoint, mol1coord, mol1charges, \
-                mol2coord, mol2charges, coulombconst)
-            else:
-              sum1, sum2 = get_eps (refpoint, mol1coord, mol1charges, \
-                mol2coord, mol2charges, coulombconst)
+            try:
+              if damped:
+                sum1, sum2 = get_damped_eps (refpoint, mol1coord, mol1charges, \
+                  mol2coord, mol2charges, coulombconst)
+              else:
+                sum1, sum2 = get_eps (refpoint, mol1coord, mol1charges, \
+                  mol2coord, mol2charges, coulombconst)
+            except Exception as ex:
+              raise (ex)
 
             mol1field[ix,iy,iz] = mol1field[ix,iy,iz] + sum1
             mol2field[ix,iy,iz] = mol2field[ix,iy,iz] + sum2
