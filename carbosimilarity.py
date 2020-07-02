@@ -12,8 +12,7 @@ if __name__ == "__main__":
     DELTAVAL = 20.0
     coulombconst = 1.0
 
-    carbo.read_delphi_file ("test_1.phi")
-
+    carbo.read_delphi_file ("test.phi")
     exit(1)
     
     parser = argparse.ArgumentParser()

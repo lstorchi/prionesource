@@ -166,10 +166,10 @@ def mol2atomextractor (file=None):
             mol = []
             while not line.startswith("@<TRIPOS>BOND"):
               sline = line.split()
-              if len(sline) != 9:
-                raise Exception("Error in "+line)
+              if len(sline) != 9 and len(sline) != 10 :
+                raise Exception("Error in "+line+ " line is "+str(len(sline)))
               a = atom(int(sline[0]), sline[1], float(sline[2]), \
-                float(sline[3]),float(sline[4]), float(sline[8]) )
+                  float(sline[3]),float(sline[4]), float(sline[8]) )
               line = f.readline()
               mol.append(a)
             mols.append(mol)
