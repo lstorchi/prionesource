@@ -12,7 +12,7 @@ if __name__ == "__main__":
     DELTAVAL = 20.0
     coulombconst = 1.0
 
-    carbo.read_delphi_file ("ala.phi")
+    carbo.read_delphi_file ("test_1.phi")
 
     exit(1)
     

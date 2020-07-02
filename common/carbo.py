@@ -76,7 +76,7 @@ def read_delphi_file (filename):
 
   uplbl = f.read_record('a20')
   nxtolbl = f.read_record('a70')
-  epmap = f.read_reals(dtype='float32').reshape((65,65,65), order="F")
+  epmap = f.read_reals(dtype='float32').reshape((65,65,65))
   botlbl = f.read_record('a16')
   scalemin = f.read_reals(dtype='float32')
 
@@ -95,6 +95,8 @@ def read_delphi_file (filename):
         y = (IY - 33)/scale + oldmid[1]
         z = (IZ - 33)/scale + oldmid[2]
 
+        #print("%6d %8.3f %8.3f %8.3f %10.5f"%(idx, x, y, z, \
+        #  epmap[ix, iy, iz]))
         print("%6d %8.3f %8.3f %8.3f"%(idx, x, y, z))
 
         idx += 1
