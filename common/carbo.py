@@ -32,11 +32,14 @@ class atom:
     self.name = name
     self.coords = (x, y, z)
     self.partialcharge = c
+    self.resname = ""
+    self.atomname = ""
   
   def __repr__ (self):
-    line = "%6d %6s %10.5f %10.5f %10.5f %8.5f \n"%( \
-      self.id, self.name, self.coords[0], self.coords[1],
-      self.coords[2], self.partialcharge )
+    line = "%6d %6s %6s %10.5f %10.5f %10.5f %8.5f %3s\n"%( \
+      self.id, self.name, self.resname, self.coords[0], \
+      self.coords[1], self.coords[2], self.partialcharge, \
+      self.atomname)
 
     return line
   
@@ -138,7 +141,6 @@ def get_damped_eps (refpoint, mol1coord, mol1charges, \
   #   ,  numpy.asarray([5, 5, 9]), numpy.asarray([1, 1, 2]))
   # chec 2.59 ...
 
-
   sum1 = 0.0
   sum2 = 0.0
         
@@ -154,7 +156,7 @@ def get_damped_eps (refpoint, mol1coord, mol1charges, \
 
 ###############################################################
 
-def mol2atomextractor (file=None):
+def mol2atomextractor (file=None, readresname= False):
   
   mols = []
 
@@ -170,6 +172,11 @@ def mol2atomextractor (file=None):
                 raise Exception("Error in "+line+ " line is "+str(len(sline)))
               a = atom(int(sline[0]), sline[1], float(sline[2]), \
                   float(sline[3]),float(sline[4]), float(sline[8]) )
+
+              if readresname:
+                a.resname = sline[7][0:3]
+                a.atomname = sline[5].split(".", 1)[0]
+
               line = f.readline()
               mol.append(a)
             mols.append(mol)
