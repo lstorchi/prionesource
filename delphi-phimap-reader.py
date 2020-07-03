@@ -226,6 +226,33 @@ class DelPhiGridMap:
       phi = matrix[i, j, k]
       return (x , y, z, phi)
 
+  def delphimap_to_kont_file(self, filename):
+    """
+    This method writes out the associated .phi file to a ASCII kont file 
+    """
+    matrix = self.get_data()
+    fout = open(filename, 'w')
+
+    idx = 1
+    for k in range(matrix.shape[2]):
+      z = self.xyz_origin[2] + k * self.xyz_step[2]
+      for i in range(matrix.shape[0]):
+        x = self.xyz_origin[0] + i * self.xyz_step[0]
+        for j in range(matrix.shape[1]):
+          y = self.xyz_origin[1] + j * self.xyz_step[1]
+
+          fout.write("%9d %8.3f %8.3f %8.3f\n"%(idx, x, y, z))
+          idx += 1
+    
+    fout.write("Fake \n")
+    
+    for k in range(matrix.shape[2]):
+      for i in range(matrix.shape[0]):
+        for j in range(matrix.shape[1]):
+          fout.write("%8.3f\n"%(matrix[i, j, k]))
+
+    fout.close()
+    
 # -----------------------------------------------------------------------------
 #
 def string_values(string, type, swap):
@@ -268,7 +295,7 @@ def DelPhiMap_scipy(filename, txtoutfile):
   fout.close()
 '''    
   
-def __main__():
+if __name__ == "__main__":
   """
   creating a DelPhiGridMap object from a given .phi potential file
   >>> delphi_data = DelPhiGridMap("/path/to/test.phi")
@@ -279,10 +306,10 @@ def __main__():
   Writing phimap to a text format
   >>> delphi_data.delphimap_to_text_file("/path/to/test-1.txt")
   """
-  delphi_data = DelPhiGridMap("/media/shailesh/DATA/Delphi_ALL/phimap_read_example/test.phi")
+  delphi_data = DelPhiGridMap("wt_90-231_aligned_2.phi")
         
   matrix = delphi_data.get_data()
     
-  delphi_data.delphimap_to_text_file("/media/shailesh/DATA/Delphi_ALL/phimap_read_example/test-1.txt")
+  delphi_data.delphimap_to_kont_file("delphi.kont")
     
   #DelPhiMap_scipy("/media/shailesh/DATA/Delphi_ALL/phimap_read_example/test.phi", "/media/shailesh/DATA/Delphi_ALL/phimap_read_example/test-2.txt")
