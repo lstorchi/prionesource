@@ -5,8 +5,9 @@
 #
 # The code array.frombuffer(file.read()) creates two copies in memory.
 # The numpy.fromfile() routine can't read into an existing array.
-#
-# Shailesh Kumar Panday, PhD
+
+##############################################################################
+
 def read_array(path, byte_offset, ijk_origin, ijk_size, ijk_step,
                full_size, type, byte_swap):
 
@@ -16,10 +17,8 @@ def read_array(path, byte_offset, ijk_origin, ijk_size, ijk_step,
                             type, byte_swap)
         return m
 
-
-# -----------------------------------------------------------------------------
+##############################################################################
 # Read an array from a binary file making at most one copy of array in memory.
-#
 def read_full_array(path, byte_offset, size, type, byte_swap,
                     block_size = 2**20):
 
@@ -34,8 +33,8 @@ def read_full_array(path, byte_offset, size, type, byte_swap,
 
     return a
   
-# -----------------------------------------------------------------------------
-#
+##############################################################################
+
 from numpy import float32
 def allocate_array(size, value_type = float32, step = None, 
                    reverse_indices = True, zero_fill = False):
@@ -64,8 +63,8 @@ def allocate_array(size, value_type = float32, step = None,
   
     return m
   
-# -----------------------------------------------------------------------------
-#
+##############################################################################
+
 def report_memory_error(size, value_type):
     from numpy import dtype, product, float
     vtype = dtype(value_type)
@@ -82,10 +81,10 @@ def report_memory_error(size, value_type):
 # Chimera DelphiViewer extension file reading code.
 #
 
-# -----------------------------------------------------------------------------
-#
-class DelPhiGridMap:
 
+##############################################################################
+
+class DelPhiGridMap:
   def __init__(self, path):
 
     self.path = path
@@ -137,8 +136,6 @@ class DelPhiGridMap:
     self.xyz_step = (step, step, step)
     self.xyz_origin = xyz_origin
     
-  # ---------------------------------------------------------------------------
-  #
   def need_to_swap_bytes(self, file):
 
     from numpy import frombuffer, int32
@@ -146,8 +143,6 @@ class DelPhiGridMap:
     file.seek(0,0)
     return (v < 0 or v >= 65536)
     
-  # ---------------------------------------------------------------------------
-  #
   def read_record(self, file, swap, skip = False):
 
     from numpy import int32
@@ -172,34 +167,32 @@ class DelPhiGridMap:
       
     return string
     
-  # ---------------------------------------------------------------------------
-  #
   def skip_record(self, file, swap):
-
     self.read_record(file, swap, skip = True)
     
-  # ---------------------------------------------------------------------------
-  #
   def matrix(self, ijk_origin, ijk_size, ijk_step):
     data = read_array(self.path, self.data_offset + 4,
                       ijk_origin, ijk_size, ijk_step, self.size,
                       self.value_type, self.swap)
     return data
 
-  # ---------------------------------------------------------------------------
-  #
   def get_data(self):
+    """
+    NOTE: X is fastest Y is slower and Z is slowest changing dimension
+          matirx is indexed as matrix[gridindexX, gridindexY, gridindexZ]
+    """
     matrix = self.matrix((0, 0, 0), self.size, self.xyz_step)
     return matrix
 
-  # ---------------------------------------------------------------------------
-  #
   def delphimap_to_text_file(self, filename):
     """
     This method writes out the associated .phi file to a text file where
     first 4 lines are header 
     5th line onwards there are nX * xY * nZ data lines.
     data format: index x y z phi
+    
+       
+    NOTE: X is fastest Y is slower and Z is slowest changing dimension
     """
     matrix = self.get_data()
     fout = open(filename, 'w')
@@ -209,22 +202,15 @@ class DelPhiGridMap:
     fout.write("coordinate steps (dX, dY, dZ) = {:8.3f} {:8.3f} {:8.3f}\n".format(*self.xyz_step))
     idx = 0
     for i in range(matrix.shape[0]):
-      x = self.xyz_origin[0] + i * self.xyz_step[0]
+      z = self.xyz_origin[2] + i * self.xyz_step[2]
       for j in range(matrix.shape[1]):
         y = self.xyz_origin[1] + j * self.xyz_step[1]
         for k in range(matrix.shape[2]):
-          z = self.xyz_origin[2] + k * self.xyz_step[2]
+          x = self.xyz_origin[0] + k * self.xyz_step[0]
           fout.write("%9d %8.3f %8.3f %8.3f %10.5f\n"%(idx, x, y, z, matrix[i,j,k]))
           idx += 1
       fout.flush()
     fout.close()
-    
-    def get_ijk_coord_and_phi(self, matrix, i, j, k):
-      x = self.xyz_origin[0] + i * self.xyz_step[0]
-      y = self.xyz_origin[1] + j * self.xyz_step[1]
-      y = self.xyz_origin[2] + k * self.xyz_step[1]
-      phi = matrix[i, j, k]
-      return (x , y, z, phi)
 
   def delphimap_to_kont_file(self, filename):
     """
@@ -252,9 +238,40 @@ class DelPhiGridMap:
           fout.write("%8.3f\n"%(matrix[i, j, k]))
 
     fout.close()
+
+  def delphimap_to_dx(self, filename):
+    from gridData import Grid
+    import numpy
+
+    x = self.xyz_origin[0] 
+    y = self.xyz_origin[1]
+    z = self.xyz_origin[2]
+
+    deltax = self.xyz_step[0]
+    deltay = self.xyz_step[1]
+    deltaz = self.xyz_step[2]
+
+    delta = numpy.zeros((3, 3), dtype=float)
+    delta[0,0] = self.xyz_step[0]
+    #delta[1,1] = self.xyz_step[1]
+    #delta[2,2] = self.xyz_step[2]
+    print(delta)
+    g = Grid(self.get_data(), origin=(x, y, z))
+
+    g.export(filename, type="double")
     
-# -----------------------------------------------------------------------------
-#
+  def get_ijk_coord_and_phi(self, matrix, gridindexX, gridindexY, gridindexZ):
+    """
+    NOTE: X is fastest Y is slower and Z is slowest changing dimension
+    """
+    x = self.xyz_origin[0] + gridindexX * self.xyz_step[0] # X-axis
+    y = self.xyz_origin[1] + gridindexY * self.xyz_step[1] # Y-axis
+    z = self.xyz_origin[2] + gridindexZ * self.xyz_step[2] # Z-axis
+    phi = matrix[gridindexX, gridindexY, gridindexZ]
+    return (x , y, z, phi)
+
+##############################################################################
+
 def string_values(string, type, swap):
   from numpy import frombuffer
   values = frombuffer(string, type)
@@ -262,40 +279,9 @@ def string_values(string, type, swap):
     values = values.byteswap()
   return values
 
+##############################################################################
 
-'''
-def DelPhiMap_scipy(filename, txtoutfile):
-  from scipy.io import FortranFile
-
-  f = FortranFile(filename, 'r' )
-    
-  uplbl = f.read_record('a20')
-  nxtolbl = f.read_record('a70')
-  epmap = f.read_reals(dtype='float32').reshape((65,65,65))
-  botlbl = f.read_record('a16')
-  scalemin = f.read_reals(dtype='float32')
-    
-  scale = scalemin[0]
-  oldmid = scalemin[1:4]
-  fout = open(txtoutfile, 'w')
-  idx = 1
-  for iz in range(65):
-    IZ = iz + 1
-    for ix in range(65):
-      IX = ix + 1
-      for iy in range(65):
-        IY = iy + 1
-    
-        x = (IX - 33)/scale + oldmid[0]
-        y = (IY - 33)/scale + oldmid[1]
-        z = (IZ - 33)/scale + oldmid[2]
-    
-        fout.write("%6d %8.3f %8.3f %8.3f %10.5f\n"%(idx, x, y, z, epmap[ix, iy, iz]))
-        idx += 1
-  fout.close()
-'''    
-  
-if __name__ == "__main__":
+if __name__ ==  "__main__":
   """
   creating a DelPhiGridMap object from a given .phi potential file
   >>> delphi_data = DelPhiGridMap("/path/to/test.phi")
@@ -306,10 +292,43 @@ if __name__ == "__main__":
   Writing phimap to a text format
   >>> delphi_data.delphimap_to_text_file("/path/to/test-1.txt")
   """
-  delphi_data = DelPhiGridMap("wt_90-231_aligned_2.phi")
+  delphi_data = DelPhiGridMap("test.phi")
         
   matrix = delphi_data.get_data()
-    
-  delphi_data.delphimap_to_kont_file("delphi.kont")
+
+  delphi_data.delphimap_to_dx("test_delphi.dx")
     
   #DelPhiMap_scipy("/media/shailesh/DATA/Delphi_ALL/phimap_read_example/test.phi", "/media/shailesh/DATA/Delphi_ALL/phimap_read_example/test-2.txt")
+
+
+"""
+-def DelPhiMap_scipy(filename, txtoutfile):
+-  from scipy.io import FortranFile
+-
+-  f = FortranFile(filename, 'r' )
+-    
+-  uplbl = f.read_record('a20')
+-  nxtolbl = f.read_record('a70')
+-  epmap = f.read_reals(dtype='float32').reshape((65,65,65))
+-  botlbl = f.read_record('a16')
+-  scalemin = f.read_reals(dtype='float32')
+-    
+-  scale = scalemin[0]
+-  oldmid = scalemin[1:4]
+-  fout = open(txtoutfile, 'w')
+-  idx = 1
+-  for iz in range(65):
+-    IZ = iz + 1
+-    for ix in range(65):
+-      IX = ix + 1
+-      for iy in range(65):
+-        IY = iy + 1
+-    
+-        x = (IX - 33)/scale + oldmid[0]
+-        y = (IY - 33)/scale + oldmid[1]
+-        z = (IZ - 33)/scale + oldmid[2]
+-    
+-        fout.write("%6d %8.3f %8.3f %8.3f %10.5f\n"%(idx, x, y, z, epmap[ix, iy, iz]))
+-        idx += 1
+-  fout.close()
+"""

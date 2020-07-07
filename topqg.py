@@ -21,8 +21,10 @@ if __name__ == "__main__":
     mols = carbo.mol2atomextractor(args.file, True)
     
     result = subprocess.run("obabel -imol2 "+  basename+ ".mol2 " + \
-            "-opdb -O " + basename+".pdb", shell=True, check=True, \
+            "-opqr -O " + basename+".pqr", shell=True, check=True, \
             stdout=subprocess.PIPE, universal_newlines=True)
+
+    exit()
 
     fpcrg = open(basename+".crg", "w")
     fpsiz = open(basename+".siz", "w")
