@@ -24,8 +24,7 @@ if __name__ == "__main__":
             "-opqr -O " + basename+".pqr", shell=True, check=True, \
             stdout=subprocess.PIPE, universal_newlines=True)
 
-    exit()
-
+    """
     fpcrg = open(basename+".crg", "w")
     fpsiz = open(basename+".siz", "w")
     fpcrg.write("atom__resnumbc_charge_ \n")
@@ -39,3 +38,6 @@ if __name__ == "__main__":
 
     fpcrg.close()
     fpsiz.close()
+    """
+
+    # python2 psize.py  test.pqr to get cage for APBS
