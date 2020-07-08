@@ -5,6 +5,8 @@ import numpy
 import argparse
 import subprocess
 
+from gridData import Grid
+
 import mendeleev
 
 sys.path.append("./common")
@@ -103,7 +105,36 @@ if __name__ == "__main__":
 
         os.remove(basename + "_" + str(idx) + ".in")
         os.remove(pqrname)
+        os.remove("io.mc")
         idx += 1
+
+    print("Start interpolate ")
+    deltamax = float("-inf")
+
+    for dxname in glob.glob(basename+"*.dx"):
+        g = Grid(dxname)
+        m = max(g.delta)
+        if m > deltamax:
+            deltamax = m
+
+        x1.push_back(g.origin[0])
+        x2.push_back(g.origin[0] + (g.grid.shape[0]-1)*g.delta[0])
+
+        y1.push_back(g.origin[1])
+        y2.push_back(g.origin[1] + (g.grid.shape[1]-1)*g.delta[2])
+
+        z1.push_back(g.origin[2])
+        z2.push_back(g.origin[2] + (g.grid.shape[2]-1)*g.delta[2])
+    
+    xmin = min(x1)
+    ymin = min(y1)
+    zmin = min(z1)
+    xmax = max(x2)
+    ymax = max(y2)
+    zmax = max(z2)
+    
+    print(deltamax, xmin, xmax, ymin, ymax, zmin, zmax)
+    #XX, YY, ZZ = numpy.mgrid[40:75:0.5, 96:150:0.5, 20:50:0.5]
 
 
     """

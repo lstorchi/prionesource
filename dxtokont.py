@@ -42,11 +42,6 @@ if __name__ ==  "__main__":
 
   args = parser.parse_args()
 
-
   g = Grid(args.file)
 
   to_kont(g)
-
-
-
-
