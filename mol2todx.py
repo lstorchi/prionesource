@@ -143,13 +143,17 @@ if __name__ == "__main__":
     XX, YY, ZZ = numpy.mgrid[xmin:xmax:deltamax, \
         ymin:ymax:deltamax, zmin:zmax:deltamax]
     
-    print("Start intepolating")
+    print("Start to intepolating")
     alldata = {}
     for dxname in glob.glob(basename+"*.dx"):
         print("Considering ", dxname)
         g = Grid(dxname)
-        g.interpolated(XX, YY, ZZ)
-        alldata[dxname] = g
+        norig = [XX[0][0][0], YY[0][0][0], ZZ[0][0][0]]
+        #print(g.origin, norig)
+        nf = g.interpolated(XX, YY, ZZ)
+        ng = Grid(nf, origin=norig , \
+           delta=[deltamax, deltamax, deltamax])
+        alldata[dxname] = ng
 
     for name in alldata:
         alldata[name].export(name)
