@@ -122,14 +122,14 @@ if __name__ == "__main__":
         if m > deltamax:
             deltamax = m
 
-        x1.push_back(g.origin[0])
-        x2.push_back(g.origin[0] + (g.grid.shape[0]-1)*g.delta[0])
+        x1.append(g.origin[0])
+        x2.append(g.origin[0] + (g.grid.shape[0]-1)*g.delta[0])
 
-        y1.push_back(g.origin[1])
-        y2.push_back(g.origin[1] + (g.grid.shape[1]-1)*g.delta[2])
+        y1.append(g.origin[1])
+        y2.append(g.origin[1] + (g.grid.shape[1]-1)*g.delta[2])
 
-        z1.push_back(g.origin[2])
-        z2.push_back(g.origin[2] + (g.grid.shape[2]-1)*g.delta[2])
+        z1.append(g.origin[2])
+        z2.append(g.origin[2] + (g.grid.shape[2]-1)*g.delta[2])
     
     xmin = min(x1)
     ymin = min(y1)
