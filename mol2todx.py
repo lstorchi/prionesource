@@ -110,7 +110,12 @@ if __name__ == "__main__":
 
     print("Start interpolate ")
     deltamax = float("-inf")
-
+    x1 = []
+    x2 = []
+    y1 = []
+    y2 = []
+    z1 = []
+    z2 = []
     for dxname in glob.glob(basename+"*.dx"):
         g = Grid(dxname)
         m = max(g.delta)
