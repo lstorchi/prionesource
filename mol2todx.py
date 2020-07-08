@@ -138,9 +138,21 @@ if __name__ == "__main__":
     ymax = max(y2)
     zmax = max(z2)
     
-    print(deltamax, xmin, xmax, ymin, ymax, zmin, zmax)
-    #XX, YY, ZZ = numpy.mgrid[40:75:0.5, 96:150:0.5, 20:50:0.5]
+    print("New Grid %10.3f %10.3f %10.3f %10.3f %10.3f %10.3f %10.3f"%(\
+        deltamax, xmin, xmax, ymin, ymax, zmin, zmax))
+    XX, YY, ZZ = numpy.mgrid[xmin:xmax:deltamax, \
+        ymin:ymax:deltamax, zmin:zmax:deltamax]
+    
+    print("Start intepolating")
+    alldata = {}
+    for dxname in glob.glob(basename+"*.dx"):
+        print("Considering ", dxname)
+        g = Grid(dxname)
+        g.interpolated(XX, YY, ZZ)
+        alldata[dxname] = g
 
+    for name in alldata:
+        alldata[name].export(name)
 
     """
     fpcrg = open(basename+".crg", "w")
