@@ -439,3 +439,12 @@ def carbo_similarity (filename1, weightsname1, filename2, weightsname2, \
         print("")
    
   return (carboidxs, xrefpoints, weights, pweights)
+
+
+###############################################################
+
+def returncarbodxs(set1, set2, verbose=False):
+
+  for v1 in set1:
+    for v2 in set2:
+      print("Compare ", v1, v2)
