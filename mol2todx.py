@@ -12,7 +12,7 @@ import mendeleev
 sys.path.append("./common")
 import carbo
 
-psizepath = "/usr/share/pdb2pqr/src/psize.py"
+psizepath = "./psize.py"
 apbspath = "/usr/bin/apbs"
 
 if __name__ == "__main__":
