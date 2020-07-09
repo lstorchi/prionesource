@@ -10,9 +10,9 @@ import carbo
 if __name__ == "__main__":
     STEPVAL = 1.4
     DELTAVAL = 20.0
+    coulombconst = 1.0
 
     """
-    coulombconst = 1.0
     carbo.read_delphi_file ("wt_90-231_aligned_2.phi")
     exit(1)
     """

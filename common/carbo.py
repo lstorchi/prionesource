@@ -445,6 +445,76 @@ def carbo_similarity (filename1, weightsname1, filename2, weightsname2, \
 
 def returncarbodxs(set1, set2, verbose=False):
 
+  g = next(iter(set1.values()))
+  xrefpoints = numpy.zeros(g[1].grid.shape[0])
+  carboidxs = numpy.zeros((len(set1)*len(set2), g[1].grid.shape[0]))
+
+  generalidx = 0
+
   for v1 in set1:
     for v2 in set2:
-      print("Compare ", v1, v2)
+      if verbose:
+        print("Compare ", v1, v2)
+      
+      g1 = set1[v1][1]
+      g2 = set2[v2][1]
+
+      try:
+        g1.check_compatible(g2)
+      except TypeError as te:
+        raise Exception(v1 + " and " + v2 + " are not compatible ")
+
+      for i in range(g1.grid.shape[0]):
+        x = g1.origin[0] + i*g1.delta[0]
+
+        num = 0.0
+        denum1 = 0.0 
+        denum2 = 0.0
+        
+        for j in range(g1.grid.shape[1]):
+          y = g1.origin[1] + j*g1.delta[2]
+          for k in range(g1.grid.shape[2]):
+            z = g1.origin[2] + k*g1.delta[2]
+
+            num = num + g1.grid[i, j, k]*g2.grid[i, j, k]
+            denum1 = denum1 + g1.grid[i, j, k]*g1.grid[i, j, k]
+            denum2 = denum2 + g2.grid[i, j, k]*g2.grid[i, j, k]
+        
+        carboidx = 0.0
+        if denum1 == 0.0 and denum2 != 0.0:
+            carboidx = -1.0
+        elif denum2 == 0.0 and denum1 != 0.0:
+            carboidx = -1.0
+        elif denum2 == 0.0 and denum1 == 0.0:
+            carboidx = 1.0
+        else:
+            carboidx = num/math.sqrt(denum1 * denum2)
+
+        if verbose:
+          print("%10.5f %10.5f"%(x, carboidx)) 
+
+        xrefpoints[i] = x
+        carboidxs[generalidx,i] = carboidx
+
+      generalidx += 1
+
+  weights = numpy.zeros(len(set1)*len(set2))
+  pweights = numpy.zeros(len(set1)*len(set2))
+  
+  # compute weight
+  generalidx = 0
+  sum = 0.0
+  for v1 in set1:
+    for v2 in set2:
+      w1 = set1[v1][0]
+      w2 = set2[v2][0]
+      # compute weights
+      weights[generalidx] = w1 + w2
+      weights[generalidx] = weights[generalidx] / 2.0
+      pweights[generalidx] = w1 * w2
+      sum = sum + w1*w2
+      generalidx = generalidx + 1
+  
+  pweights =  pweights / sum
+  
+  return (carboidxs, xrefpoints, weights, pweights)

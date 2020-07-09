@@ -137,7 +137,7 @@ if __name__ == "__main__":
     xmax = max(x2)
     ymax = max(y2)
     zmax = max(z2)
-    
+
     print("New Grid %10.3f %10.3f %10.3f %10.3f %10.3f %10.3f %10.3f"%(\
         deltamax, xmin, xmax, ymin, ymax, zmin, zmax))
     XX, YY, ZZ = numpy.mgrid[xmin:xmax:deltamax, \
