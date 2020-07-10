@@ -20,6 +20,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-f","--file", help="input the mol2 file", \
             required=True, default="", type=str)
+    parser.add_argument("-d","--deltaval", help="Force a specific delta value", \
+            required=False, default=-1.0, type=float)
 
     args = parser.parse_args()
 
@@ -108,6 +110,7 @@ if __name__ == "__main__":
         os.remove("io.mc")
         idx += 1
 
+    num = idx - 1
     print("Start interpolate ")
     deltamax = float("-inf")
     x1 = []
@@ -116,7 +119,8 @@ if __name__ == "__main__":
     y2 = []
     z1 = []
     z2 = []
-    for dxname in glob.glob(basename+"*.dx"):
+    for idx in range(1, num+1):
+        dxname = basename+"_"+str(idx)+".dx"
         g = Grid(dxname)
         m = max(g.delta)
         if m > deltamax:
@@ -138,14 +142,18 @@ if __name__ == "__main__":
     ymax = max(y2)
     zmax = max(z2)
 
+    if args.deltaval > 0.0:
+        deltamax = args.deltaval
+
     print("New Grid %10.3f %10.3f %10.3f %10.3f %10.3f %10.3f %10.3f"%(\
         deltamax, xmin, xmax, ymin, ymax, zmin, zmax))
     XX, YY, ZZ = numpy.mgrid[xmin:xmax:deltamax, \
         ymin:ymax:deltamax, zmin:zmax:deltamax]
-    
+
     print("Start to intepolating")
     alldata = {}
-    for dxname in glob.glob(basename+"*.dx"):
+    for idx in range(1, num+1):
+        dxname = basename+"_"+str(idx)+".dx"
         print("Considering ", dxname)
         g = Grid(dxname)
         norig = [XX[0][0][0], YY[0][0][0], ZZ[0][0][0]]
