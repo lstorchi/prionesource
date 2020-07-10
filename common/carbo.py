@@ -564,7 +564,8 @@ def get_cfields (mols, STEPVAL, DELTAVAL, coulombconst, verbose = False):
   zmax = zmax + DELTAVAL
   
   if verbose:
-    print("Grid will be used: ", xmin, ymin, zmin, xmax, ymax, zmax)
+    print("Grid will be used: %10.5f %10.5f %10.5f %10.5f %10.5f %10.5f"%( \
+      xmin, ymin, zmin, xmax, ymax, zmax))
   
   xnstep = int( ((xmax - xmin) / STEPVAL)+0.5)
   ynstep = int( ((ymax - ymin) / STEPVAL)+0.5)
@@ -585,11 +586,15 @@ def get_cfields (mols, STEPVAL, DELTAVAL, coulombconst, verbose = False):
     atomnum = len(mols[molidx])
     molcoord = numpy.zeros((atomnum, 3))
     molcharges = numpy.zeros((atomnum, 1))
+    totcharge = 0.0
     for idx, atom in enumerate(mols[molidx]):
       molcoord[idx,0] = atom.coords[0]
       molcoord[idx,1] = atom.coords[1]
       molcoord[idx,2] = atom.coords[2]
       molcharges[idx,0] = atom.partialcharge
+      totcharge += atom.partialcharge
+    if verbose:
+      print("   totalcharge: ", totcharge)
     
     coords = []
     refpoint = numpy.zeros((1, 3))
