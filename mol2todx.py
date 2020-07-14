@@ -150,8 +150,9 @@ if __name__ == "__main__":
     XX, YY, ZZ = numpy.mgrid[xmin:xmax:deltamax, \
         ymin:ymax:deltamax, zmin:zmax:deltamax]
 
-    print("Start to intepolating")
+    print("Start to intepolate")
     alldata = {}
+    shapes = None
     for idx in range(1, num+1):
         dxname = basename+"_"+str(idx)+".dx"
         print("Considering ", dxname)
@@ -162,7 +163,10 @@ if __name__ == "__main__":
         ng = Grid(nf, origin=norig , \
            delta=[deltamax, deltamax, deltamax])
         alldata[dxname] = ng
+        shapes = nf.shape
 
+    mep = numpy.zeros(shapes)
+    
     for name in alldata:
         alldata[name].export(name)
 

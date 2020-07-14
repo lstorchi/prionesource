@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
     STEPVAL = 1.4
     DELTAVAL = 20.0
-    coulombconst = 20.0
+    coulombconst = 1.0
     
     parser = argparse.ArgumentParser()
     parser.add_argument("-f","--file", help="input the mol2 file", \
@@ -41,7 +41,19 @@ if __name__ == "__main__":
 
     cfields = carbo.get_cfields(mols, args.stepvalue, args.deltaval, \
       coulombconst, args.verbose)
-    
+
+    mep = numpy.zeros(cfields[0][1].shape)
+    coords = cfields[0][0]
+    for field in cfields:
+      ep = field[1]
+      mep += ep
+
+    mep = mep/float(len(cfields))
+    g = Grid(mep, origin=coords[0], \
+      delta=[args.stepvalue, args.stepvalue, args.stepvalue])
+    name = basename + "_coulomb_mean.dx"
+    g.export(name)
+
     for i, field in enumerate(cfields):
       coords = field[0]
       ep = field[1]

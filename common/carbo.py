@@ -52,10 +52,10 @@ def get_seps (refpoint, molcoord, molcharges, coulombconst):
 
   sum = 0.0
 
-  print("TODO")
-  #if (dist.min() > 1.0):
-  ep = coulombconst * (molcharges/dist)
-  sum = numpy.sum(ep) 
+  #print("TODO")
+  if (dist.min() > 1.0):
+    ep = coulombconst * (molcharges/dist)
+    sum = numpy.sum(ep) 
 
   return sum
 
