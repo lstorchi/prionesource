@@ -153,6 +153,7 @@ if __name__ == "__main__":
     print("Start to intepolate")
     alldata = {}
     shapes = None
+    norig = None
     for idx in range(1, num+1):
         dxname = basename+"_"+str(idx)+".dx"
         print("Considering ", dxname)
@@ -166,9 +167,16 @@ if __name__ == "__main__":
         shapes = nf.shape
 
     mep = numpy.zeros(shapes)
-    
+
     for name in alldata:
+        mep += alldata[name].grid
         alldata[name].export(name)
+    
+    mep = mep/float(len(alldata))
+    g = Grid(mep, origin=norig, \
+      delta=[deltamax, deltamax, deltamax])
+    name = basename + "_mean.dx"
+    g.export(name)
 
     """
     fpcrg = open(basename+".crg", "w")

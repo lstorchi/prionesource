@@ -7,7 +7,7 @@ lista = ["e200k_coulomb_mean.dx"]
 #        "E200K_clust-cutoff02_2.dx", \
 #        "E200K_clust-cutoff02_3.dx"]
 
-#lista = glob.glob("*.dx")
+lista = glob.glob("wt*.dx")
 
 for idx, name in enumerate(lista):
     cmd.load(name)
