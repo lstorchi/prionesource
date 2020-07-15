@@ -209,41 +209,24 @@ def carbo_similarity (filename1, weightsname1, filename2, weightsname2, \
   weights2 = []
   weightsfp1 = open(weightsname1)
   weightsfp2 = open(weightsname2)
-  weightsfp1.readline()
+  
   idx = 0
   sum = 0.0
   for line in weightsfp1:
-    p = re.compile(r'\s+')
-    line = p.sub(' ', line)
-    line = line.lstrip()
-    line = line.rstrip()
-                      
-    values = re.split(' ', line)
-
-    if len(values) < IDXSLCT+1:
-      raise Exception("Error in weight file size")
-  
-    sum = sum + float(values[IDXSLCT])
-
-    weights1.append(float(values[IDXSLCT]))
+    value = float(line)
+    sum = sum + value
+    weights1.append(value)
     idx = idx + 1
 
   for i in range(len(weights1)):
     weights1[i] = weights1[i] / sum
   
   sum = 0.0
-  weightsfp2.readline()
   idx = 0
-  
   for line in weightsfp2:
-    values = re.split('\s+', line)
-
-    if len(values) < IDXSLCT+1:
-      raise Exception("Error in weight file size")
-
-    sum = sum + float(values[IDXSLCT])
-  
-    weights2.append(float(values[IDXSLCT]))
+    value = float(line)
+    sum = sum + value
+    weights2.append(value)
     idx = idx + 1
   
   for i in range(len(weights2)):
@@ -317,11 +300,11 @@ def carbo_similarity (filename1, weightsname1, filename2, weightsname2, \
   
   # check amount 
   if (len(mols1) != len(weights1)):
-    raise Exception("Error different size "+str(len(mol1list))+ \
+    raise Exception("Error different size "+str(len(mols1))+ \
             " vs "+str(len(weights1)))
   
   if (len(mols2) != len(weights2)):
-    raise Exception("Error different size "+str(len(mol2list))+ \
+    raise Exception("Error different size "+str(len(mols2))+ \
             " vs "+str(len(weights2)))
 
   if verbose:
