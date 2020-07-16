@@ -181,7 +181,6 @@ def mol2atomextractor (file=None, readresname= False):
         line = f.readline()
         if line.startswith("@<TRIPOS>ATOM"):
             line = f.readline()
-            print(line)
             mol = []
             while not line.startswith("@<TRIPOS>BOND"):
               sline = line.split()
