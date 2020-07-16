@@ -60,6 +60,6 @@ if __name__ == "__main__":
       g = Grid(numpy.asarray(ep), origin=coords[0], \
         delta=[args.stepvalue, args.stepvalue, args.stepvalue])
       
-      name = basename + "_coulomb_" + str(i) + ".dx"
+      name = basename + "_coulomb_" + str(i+1) + ".dx"
 
       g.export(name)

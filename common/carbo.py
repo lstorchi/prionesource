@@ -181,6 +181,7 @@ def mol2atomextractor (file=None, readresname= False):
         line = f.readline()
         if line.startswith("@<TRIPOS>ATOM"):
             line = f.readline()
+            print(line)
             mol = []
             while not line.startswith("@<TRIPOS>BOND"):
               sline = line.split()
@@ -556,7 +557,6 @@ def get_cfields (mols, STEPVAL, DELTAVAL, coulombconst, verbose = False):
   znstep = int( ((zmax - zmin) / STEPVAL)+0.5)
   
   molsfield = []
-  molfield = numpy.zeros((xnstep, ynstep, znstep))
   
   if verbose:
     print("")
@@ -580,6 +580,7 @@ def get_cfields (mols, STEPVAL, DELTAVAL, coulombconst, verbose = False):
     if verbose:
       print("   totalcharge: ", totcharge)
     
+    molfield = numpy.zeros((xnstep, ynstep, znstep))
     coords = []
     refpoint = numpy.zeros((1, 3))
     for ix in range(0,xnstep):

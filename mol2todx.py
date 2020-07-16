@@ -20,7 +20,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-f","--file", help="input the mol2 file", \
             required=True, default="", type=str)
-    parser.add_argument("-d","--deltaval", help="Force a specific delta value", \
+    parser.add_argument("-s","--stepval", help="Force a specific delta value", \
             required=False, default=-1.0, type=float)
 
     args = parser.parse_args()
@@ -142,8 +142,8 @@ if __name__ == "__main__":
     ymax = max(y2)
     zmax = max(z2)
 
-    if args.deltaval > 0.0:
-        deltamax = args.deltaval
+    if args.stepval > 0.0:
+        deltamax = args.stepval
 
     print("New Grid %10.3f %10.3f %10.3f %10.3f %10.3f %10.3f %10.3f"%(\
         deltamax, xmin, xmax, ymin, ymax, zmin, zmax))
