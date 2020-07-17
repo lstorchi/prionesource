@@ -54,7 +54,10 @@ def get_seps (refpoint, molcoord, molcharges, coulombconst):
 
   #print("TODO")
   if (dist.min() > 1.0):
-    ep = coulombconst * (molcharges/dist)
+    #ep = coulombconst * (molcharges/dist)
+    # simplest distance-dependent dielectric constant has been implemented in lammps
+    ep = coulombconst * (molcharges/(dist**2))
+
     sum = numpy.sum(ep) 
 
   return sum
