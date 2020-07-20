@@ -22,6 +22,8 @@ if __name__ == "__main__":
             required=True, default="", type=str)
     parser.add_argument("-s","--stepval", help="Force a specific delta value", \
             required=False, default=-1.0, type=float)
+    parser.add_argument("-c","--flat", help="Set a dielectric to 1 and remove ions term", \
+            required=False, default=False, action="store_true" )
 
     args = parser.parse_args()
 
@@ -79,25 +81,29 @@ if __name__ == "__main__":
         fp.write("   fgcent %12.6f %12.6f %12.6f\n"%(gcent[0], gcent[1], gcent[2]))
         fp.write("   lpbe\n")
         fp.write("   bcfl sdh\n")
-        fp.write("   ion charge  1 conc 0.150000 radius 2.000000\n") 
-        fp.write("   ion charge -1 conc 0.150000 radius 1.800000\n")
-        fp.write("   ion charge  2 conc 0.000000 radius 2.000000\n")
-        fp.write("   ion charge -2 conc 0.000000 radius 2.000000\n")
-        #fp.write("   ion charge  1 conc 0.000000 radius 2.000000\n") # tutte a zero le concentrazioni
-        #fp.write("   ion charge -1 conc 0.000000 radius 1.800000\n")
-        #fp.write("   ion charge  2 conc 0.000000 radius 2.000000\n")
-        #fp.write("   ion charge -2 conc 0.000000 radius 2.000000\n")
-        fp.write("   pdie 2.000000\n") 
-        fp.write("   sdie 78.000000\n")
-        #fp.write("   pdie 1.000000\n")
-        #fp.write("   sdie 1.000000\n")
+        if not args.flat:
+            fp.write("   ion charge  1 conc 0.150000 radius 2.000000\n") 
+            fp.write("   ion charge -1 conc 0.150000 radius 1.800000\n")
+            fp.write("   ion charge  2 conc 0.000000 radius 2.000000\n")
+            fp.write("   ion charge -2 conc 0.000000 radius 2.000000\n")
+            fp.write("   pdie 2.000000\n") 
+            fp.write("   sdie 78.000000\n")
+        else:
+            fp.write("   ion charge  1 conc 0.000000 radius 2.000000\n") 
+            fp.write("   ion charge -1 conc 0.000000 radius 1.800000\n")
+            fp.write("   ion charge  2 conc 0.000000 radius 2.000000\n")
+            fp.write("   ion charge -2 conc 0.000000 radius 2.000000\n")
+            fp.write("   pdie 1.000000\n")
+            fp.write("   sdie 1.000000\n")
         fp.write("   chgm spl2\n")
         fp.write("   mol 1\n")
         fp.write("   srfm smol\n")
         fp.write("   srad 1.400000\n")
         fp.write("   swin 0.3\n")
-        fp.write("   temp 310.000000\n") 
-        #fp.write("   temp  0.100000\n") 
+        if not args.flat:
+            fp.write("   temp 310.000000\n") 
+        else:
+            fp.write("   temp  0.100000\n") 
         fp.write("   sdens 10.000000\n")
         fp.write("   calcenergy no\n")
         fp.write("   calcforce no\n") 
@@ -158,6 +164,7 @@ if __name__ == "__main__":
         ymin:ymax:deltamax, zmin:zmax:deltamax]
 
     print("Start to intepolate")
+
     alldata = {}
     shapes = None
     norig = None
@@ -175,14 +182,23 @@ if __name__ == "__main__":
 
     mep = numpy.zeros(shapes)
 
+    idx =  1
     for name in alldata:
         mep += alldata[name].grid
-        alldata[name].export(name)
+        newname = name 
+        if args.flat:
+            newname = basename+"_flat_"+str(idx)+".dx"
+        alldata[name].export(newname)
+        if args.flat:
+            os.remove(name)
+        idx += 1
     
     mep = mep/float(len(alldata))
     g = Grid(mep, origin=norig, \
       delta=[deltamax, deltamax, deltamax])
     name = basename + "_mean.dx"
+    if args.flat:
+        name = basename + "_flat_mean.dx"
     g.export(name)
 
     """

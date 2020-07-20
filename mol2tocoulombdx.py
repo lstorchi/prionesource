@@ -32,6 +32,8 @@ if __name__ == "__main__":
       required=False, default=False, action="store_true")
     parser.add_argument("--show", help="Show plot", \
       required=False, default=False, action="store_true")
+    parser.add_argument("--ddielectric", help="Enable Dielectric damping", \
+      required=False, default=False, action="store_true")
 
     args = parser.parse_args()
 
@@ -40,7 +42,7 @@ if __name__ == "__main__":
     mols = carbo.mol2atomextractor(args.file, False)
 
     cfields = carbo.get_cfields(mols, args.stepvalue, args.deltaval, \
-      coulombconst, args.verbose)
+      coulombconst, args.verbose, args.ddielectric)
 
     mep = numpy.zeros(cfields[0][1].shape)
     coords = cfields[0][0]
@@ -61,5 +63,7 @@ if __name__ == "__main__":
         delta=[args.stepvalue, args.stepvalue, args.stepvalue])
       
       name = basename + "_coulomb_" + str(i+1) + ".dx"
+      if args.ddielectric:
+        name = basename + "_coulomb_ddieletric_" + str(i+1) + ".dx"
 
       g.export(name)

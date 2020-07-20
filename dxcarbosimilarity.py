@@ -46,11 +46,6 @@ if __name__ == "__main__":
       stdev = carboidxs.std(0)
       meanmtx = carboidxs.mean(0)
   
-      print("")
-      print("Final Mean and stdev")
-      for idx, std in enumerate(stdev):
-        print("%+11.8e %+11.8e %+11.8e"%(xrefpoints[idx], meanmtx[idx] , std))
-
       plt.errorbar(xrefpoints, meanmtx, stdev,  linestyle='None', \
         marker='^', label="Mean and stdev")
       plt.plot(xrefpoints, meanmtx, linestyle='--')
@@ -59,12 +54,8 @@ if __name__ == "__main__":
       #print(carboidxs.mean(0))
       #print(carboidxs.std(0))
   
-      print("Weighted Mead and stdev")
       waverage = numpy.average(carboidxs, 0, weights)
       wvariance = numpy.average((carboidxs-waverage)**2, 0, weights)
-      for idx, std in enumerate(wvariance):
-        print("%+11.8e %+11.8e %+11.8e"%(xrefpoints[idx], waverage[idx] , std))
-
       plt.errorbar(xrefpoints, waverage, wvariance,  linestyle='None', \
         marker='^', label="Weighted Mean and stdev")
       plt.plot(xrefpoints, waverage, linestyle='--')
@@ -73,15 +64,19 @@ if __name__ == "__main__":
       #print(waverage)
       #print(wvariance)
   
-      print("PWeighted Mead and stdev")
-      waverage = numpy.average(carboidxs, 0, pweights)
-      wvariance = numpy.average((carboidxs-waverage)**2, 0, pweights)
-      for idx, std in enumerate(wvariance):
-        print("%+11.8e %+11.8e %+11.8e"%(xrefpoints[idx], waverage[idx] , std))
-      
-      plt.errorbar(xrefpoints, waverage, wvariance,  linestyle='None', \
+      pwaverage = numpy.average(carboidxs, 0, pweights)
+      pwvariance = numpy.average((carboidxs-waverage)**2, 0, pweights)
+     
+      plt.errorbar(xrefpoints, pwaverage, pwvariance,  linestyle='None', \
         marker='^', label="PWeighted Mean and stdev")
-      plt.plot(xrefpoints, waverage, linestyle='--')
+      plt.plot(xrefpoints, pwaverage, linestyle='--')
+
+      print("%13s %13s %13s %13s %13s %13s %13s"%("X", "SMean",  \
+        "SStdev", "WMean", "WStdev", "PWMean", "PWStdev"))
+      for idx, std in enumerate(stdev):
+        print("%+8.6e %+8.6e %+8.6e %+8.6e %+8.6e %+8.6e %+8.6e"%(\
+          xrefpoints[idx], meanmtx[idx] , std, waverage[idx], \
+            wvariance[idx], pwaverage[idx], pwvariance[idx] ))
       
       #print("full matrix")
       #print(waverage)
