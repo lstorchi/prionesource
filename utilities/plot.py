@@ -77,6 +77,7 @@ if __name__ == "__main__":
  
   fp.close()
 
+
   plt.errorbar(x1, y1, s1,  linestyle='None', \
       marker='^', label="APBS standard")
   plt.plot(x1, y1, linestyle='--')
@@ -84,8 +85,8 @@ if __name__ == "__main__":
   plt.errorbar(x2, y2, s2,  linestyle='None', \
       marker='^', label="Coulomb damped dielectric")
   plt.plot(x2, y2, linestyle='--')
-  
 
+  
   plt.errorbar(x3, y3, s3,  linestyle='None', \
       marker='^', label="APBS flat")
   plt.plot(x3, y3, linestyle='--')

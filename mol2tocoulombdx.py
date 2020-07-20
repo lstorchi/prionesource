@@ -34,6 +34,8 @@ if __name__ == "__main__":
       required=False, default=False, action="store_true")
     parser.add_argument("--ddielectric", help="Enable Dielectric damping", \
       required=False, default=False, action="store_true")
+    parser.add_argument("--interpolate", help="Use input DX file to interpolte inm the same grid", \
+      required=False, default="", type=str)
 
     args = parser.parse_args()
 
@@ -56,6 +58,10 @@ if __name__ == "__main__":
     name = basename + "_coulomb_mean.dx"
     g.export(name)
 
+    tofitw = None
+    if args.interpolate != "":
+      tofitw = Grid(args.interpolate)
+
     for i, field in enumerate(cfields):
       coords = field[0]
       ep = field[1]
@@ -65,5 +71,9 @@ if __name__ == "__main__":
       name = basename + "_coulomb_" + str(i+1) + ".dx"
       if args.ddielectric:
         name = basename + "_coulomb_ddieletric_" + str(i+1) + ".dx"
-
-      g.export(name)
+      
+      if tofitw != None:
+        g_on = g.resample(tofitw)
+        g_on.export(name)
+      else:
+        g.export(name)
