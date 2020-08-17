@@ -42,6 +42,7 @@ if __name__ == "__main__":
     basename = os.path.splitext(args.file)[0] 
 
     mols = []
+    names = []
     weights = []
     fp = open(args.file, "r")
     for l in fp:
@@ -53,6 +54,7 @@ if __name__ == "__main__":
             exit(1)
         mols.append(mol[0])
         weights.append(w)
+        names.append(name)
     fp.close()
     sum = numpy.sum(weights)
     weights /= sum
@@ -84,9 +86,14 @@ if __name__ == "__main__":
       g = Grid(numpy.asarray(ep), origin=coords[0], \
         delta=[args.stepvalue, args.stepvalue, args.stepvalue])
       
-      name = basename + "_coulomb_" + str(i+1) + ".dx"
+      basename = os.path.splitext(names[i])[0]
+      name = basename + "_coulomb.dx"
       if args.ddielectric:
-        name = basename + "_coulomb_ddieletric_" + str(i+1) + ".dx"
+        name = basename + "_coulomb_ddieletric.dx"
+
+      #name = basename + "_coulomb_" + str(i+1) + ".dx"
+      #if args.ddielectric:
+      #  name = basename + "_coulomb_ddieletric_" + str(i+1) + ".dx"
       
       if tofitw != None:
         g_on = g.resample(tofitw)
