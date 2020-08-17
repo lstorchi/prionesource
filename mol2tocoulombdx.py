@@ -22,7 +22,7 @@ if __name__ == "__main__":
     coulombconst = 1.0
     
     parser = argparse.ArgumentParser()
-    parser.add_argument("-f","--file", help="input the mol2 file", \
+    parser.add_argument("-f","--file", help="input the mol2 list and weights file", \
         required=True, default="", type=str)
     parser.add_argument("-s","--stepvalue", help="input step value defaul="+str(STEPVAL), \
       required=False, default=STEPVAL, type=float)
@@ -41,16 +41,32 @@ if __name__ == "__main__":
 
     basename = os.path.splitext(args.file)[0] 
 
-    mols = carbo.mol2atomextractor(args.file, False)
+    mols = []
+    weights = []
+    fp = open(args.file, "r")
+    for l in fp:
+        name, ws = l.split()
+        w = float(ws)
+        mol = carbo.mol2atomextractor(name, False)
+        if len(mol) != 1:
+            print("Error each file should have 1 molecule")
+            exit(1)
+        mols.append(mol[0])
+        weights.append(w)
+    fp.close()
+    sum = numpy.sum(weights)
+    weights /= sum
+    #print(numpy.sum(weights))
+    #mols = carbo.mol2atomextractor(args.file, False)
 
     cfields = carbo.get_cfields(mols, args.stepvalue, args.deltaval, \
       coulombconst, args.verbose, args.ddielectric)
 
     mep = numpy.zeros(cfields[0][1].shape)
     coords = cfields[0][0]
-    for field in cfields:
+    for i, field in enumerate(cfields):
       ep = field[1]
-      mep += ep
+      mep += ep * weights[i]
 
     mep = mep/float(len(cfields))
     g = Grid(mep, origin=coords[0], \
