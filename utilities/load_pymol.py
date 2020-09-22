@@ -3,7 +3,7 @@ from pymol import cmd
 import glob
 import os
 
-lista = ["model_3-fit_opt_mean.dx"]
+lista = ["model_3-fit_opt_flat_mean.dx"]
 #        "E200K_clust-cutoff02_2.dx", \
 #        "E200K_clust-cutoff02_3.dx"]
 

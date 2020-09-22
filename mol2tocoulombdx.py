@@ -92,6 +92,7 @@ if __name__ == "__main__":
       name = basename + "_coulomb.dx"
       if args.ddielectric:
         name = basename + "_coulomb_ddieletric.dx"
+      print (name + " %8.3f"%(weights[i]))
 
       #name = basename + "_coulomb_" + str(i+1) + ".dx"
       #if args.ddielectric:

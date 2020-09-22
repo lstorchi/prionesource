@@ -207,10 +207,11 @@ if __name__ == "__main__":
 
     idx =  1
     for name in alldata:
-        mep += alldata[name].grid * allweig[dxname]
+        mep += alldata[name].grid * allweig[name]
         newname = name 
         if args.flat:
-            newname = basename+"_flat_"+str(idx)+".dx"
+            newname = basename+"_flat.dx"
+        print(newname + " %8.3f"%(allweig[name]) )
         alldata[name].export(newname)
         if args.flat:
             os.remove(name)
