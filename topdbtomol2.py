@@ -79,11 +79,11 @@ if __name__ == "__main__":
     fp.close()
     fo.close()
 
-    print("Producing PQR file")
-    result = subprocess.run("obabel -imol2 "+ basename+"_nc.mol2 " + \
-            " -opqr -O " + basename+".pqr", shell=True, check=True, \
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE,  \
-                    universal_newlines=True)
+    #print("Producing PQR file")
+    #result = subprocess.run("obabel -imol2 "+ basename+"_nc.mol2 " + \
+    #        " -opqr -O " + basename+".pqr", shell=True, check=True, \
+    #        stdout=subprocess.PIPE, stderr=subprocess.PIPE,  \
+    #                universal_newlines=True)
 
     os.remove(basename+".mol2")
     os.rename(basename+"_nc.mol2", basename+".mol2")
