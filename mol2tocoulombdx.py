@@ -74,6 +74,8 @@ if __name__ == "__main__":
     g = Grid(mep, origin=coords[0], \
       delta=[args.stepvalue, args.stepvalue, args.stepvalue])
     name = basename + "_coulomb_mean.dx"
+    if args.ddielectric:
+      name = basename + "_coulomb_ddieletric_mean.dx"
     g.export(name)
 
     tofitw = None

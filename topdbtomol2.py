@@ -53,7 +53,6 @@ if __name__ == "__main__":
     for l in fp:
         if l.find("@<TRIPOS>ATOM") == 0:
             stateinatom = True
-            fo.write(l)
         elif l.find("@<TRIPOS>BOND") == 0:
             stateinatom = False
 
