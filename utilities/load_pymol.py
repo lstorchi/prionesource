@@ -3,7 +3,7 @@ from pymol import cmd
 import glob
 import os
 
-lista = ["lista-fit_coulomb_ddieletric_mean.dx"]
+lista = ["model_3-fit_opt_mean.dx"]
 #        "E200K_clust-cutoff02_2.dx", \
 #        "E200K_clust-cutoff02_3.dx"]
 
@@ -12,8 +12,8 @@ lista = ["lista-fit_coulomb_ddieletric_mean.dx"]
 for idx, name in enumerate(lista):
     cmd.load(name)
     basename = os.path.splitext(name)[0]
-    cmd.isosurface(basename+'_sp', basename, +0.010000)
+    cmd.isosurface(basename+'_sp', basename, +0.10000)
     cmd.color('blue', basename+'_sp')
-    cmd.isosurface(basename+'_sm', basename, -0.010000)
+    cmd.isosurface(basename+'_sm', basename, -0.10000)
     cmd.color('red', basename+'_sm')
 
