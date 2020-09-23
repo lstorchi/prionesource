@@ -24,10 +24,16 @@ if __name__ == "__main__":
             required=False, default=-1.0, type=float)
     parser.add_argument("-c","--flat", help="Set a dielectric to 1 and remove ions term", \
             required=False, default=False, action="store_true" )
+    parser.add_argument("--interpolate", help="Use input DX file to interpolte inm the same grid", \
+            required=False, default="", type=str)
 
     args = parser.parse_args()
 
     listafp = open(args.file)
+
+    tofitw = None
+    if args.interpolate != "":
+      tofitw = Grid(args.interpolate)
 
     for fname in listafp:
 
@@ -215,6 +221,12 @@ if __name__ == "__main__":
         alldata[name].export(newname)
         if args.flat:
             os.remove(name)
+
+        if tofitw != None:
+          g_on = alldata[name].resample(tofitw)
+          os.remove(newname)
+          g_on.export(newname)
+
         idx += 1
     
     mep = mep/sumwei
@@ -224,6 +236,11 @@ if __name__ == "__main__":
     if args.flat:
         name = basename + "_flat_mean.dx"
     g.export(name)
+
+    if tofitw != None:
+        g_on = g.resample(tofitw)
+        os.remove(name)
+        g_on.export(name)
 
     """
     fpcrg = open(basename+".crg", "w")
