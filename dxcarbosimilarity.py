@@ -85,6 +85,10 @@ if __name__ == "__main__":
       if args.show:
         plt.legend(loc="lower left")
         plt.show()
+      else:
+        plt.legend(loc="lower left")
+        #plt.figure(num=None, figsize=(9, 6), dpi=80, facecolor='w', edgecolor='k')
+        plt.savefig('finalcarbo.png')
 
     except Exception as exp:
       print(exp)
