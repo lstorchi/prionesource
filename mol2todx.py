@@ -217,7 +217,7 @@ if __name__ == "__main__":
         newname = name 
         if args.flat:
             newname = basename+"_flat.dx"
-        print(newname + " %8.3f"%(allweig[name]) )
+        print(newname + " %8.3f"%(allweig[name]), file=sys.stderr )
         alldata[name].export(newname)
         if args.flat:
             os.remove(name)
