@@ -216,11 +216,9 @@ if __name__ == "__main__":
         mep += alldata[name].grid * allweig[name]
         newname = name 
         if args.flat:
-            newname = basename+"_flat.dx"
+            newname = name[:-3]+"_flat.dx"
         print(newname + " %8.3f"%(allweig[name]), file=sys.stderr )
         alldata[name].export(newname)
-        if args.flat:
-            os.remove(name)
 
         if tofitw != None:
           g_on = alldata[name].resample(tofitw)
@@ -228,7 +226,9 @@ if __name__ == "__main__":
           g_on.export(newname)
 
         idx += 1
-    
+
+    basename = os.path.splitext(args.file.split()[0])[0]
+
     mep = mep/sumwei
     g = Grid(mep, origin=norig, \
       delta=[deltamax, deltamax, deltamax])
