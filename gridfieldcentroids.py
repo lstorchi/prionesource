@@ -91,6 +91,8 @@ NUMOFCLUST = 0
 parser = argparse.ArgumentParser()
 parser.add_argument("-f","--file", help="input the mol2 list and weights file", \
     required=True, default="", type=str)
+parser.add_argument("-o","--output", help="output filename ", \
+    required=False, default="mean.kont", type=str)
 parser.add_argument("-p","--probe", help="the probe to be used [default="+probe+"]", \
   required=False, default=probe, type=str)
 parser.add_argument("-s","--stepval", help="input stepval value [defaul="+str(STEPVAL)+"]", \
@@ -112,19 +114,19 @@ DELTAVAL = args.stepval
 
 
 if not os.path.isfile("./grid"):
-    print("we nee grid executable in the current dir")
+    print("we need grid executable in the current dir")
     exit(1)
 
 if not os.path.isfile("./fixpdb"):
-    print("we nee fixpdb executable in the current dir")
+    print("we need fixpdb executable in the current dir")
     exit(1)
 
 print("Computing grid fields ...")
 
-energy, xmin, ymin, zmin = gridfield.compute_grid_avg_field (filename, \
-        weightfile, STEPVAL, DELTAVAL, probe)
+energy, xmin, ymin, zmin = gridfield.compute_grid_mean_field (args.file, \
+        STEPVAL, DELTAVAL, probe)
 
-gridfield.energytofile (energy, "mean.kont", xmin, ymin, zmin, STEPVAL)
+gridfield.energytofile (energy, args.output, xmin, ymin, zmin, STEPVAL)
 
 xsets = set()
 ysets = set()

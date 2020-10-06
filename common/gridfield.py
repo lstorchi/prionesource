@@ -6,6 +6,8 @@ import math
 import re
 import os
 
+import carbo
+
 ###############################################################################
 
 def ifextrm (filename):
@@ -438,3 +440,142 @@ def read_kontfile (kontname):
   return energy, botx, boty, botz, topx, topy, topz, dx, dy, dz, nx, ny, nz
 
 ###############################################################################
+
+def compute_grid_mean_field (filename, step, delta, \
+        probename):
+
+  # generate grid 
+  xmin = float("inf")
+  ymin = float("inf")
+  zmin = float("inf")
+  xmax = float("-inf")
+  ymax = float("-inf")
+  zmax = float("-inf")
+
+  fp = open(filename, "r")
+
+  sum = 0.0
+  weights = []
+  mollist = []
+  for l in fp:
+    sl = l.split()
+    if (len(sl) != 2):
+      print("Error in ", filename)
+      exit(1)
+    
+    weights.append(float(sl[1]))
+    sum += float(sl[1])
+
+    m = carbo.mol2atomextractor(sl[0])
+    mollist.extend(m)
+  
+  fp.close()
+
+  weights = [ v/sum for v in weights]
+
+  for conf in mollist:
+    for a in conf:
+      x, y, z = a.coords
+      
+      if x < xmin:
+        xmin = x
+      if y < ymin:
+        ymin = y
+      if z < zmin:
+        zmin = z
+  
+      if x > xmax:
+        xmax = x
+      if y > ymax:
+        ymax = y
+      if z > zmax:
+        zmax = z
+  
+  xmin = xmin - delta
+  xmax = xmax + delta
+  
+  ymin = ymin - delta
+  ymax = ymax + delta
+  
+  zmin = zmin - delta
+  zmax = zmax + delta
+  
+  print("Grid will be used: ", xmin, ymin, zmin, xmax, ymax, zmax)
+  
+  xnsteps = int((xmax - xmin) / step) + 1
+  
+  if (len(mollist) != len(weights)):
+    print("Dimension error ", len(mol1list) , " vs " , \
+      len(weights1))
+    exit(1)
+
+  energy = numpy.empty([1,1,1], float)
+  globalindex = 0
+  fp = open(filename, "r")
+  for conf in fp:
+
+    ifextrm ("./"+str(globalindex)+".pdb")
+
+    output = pybel.Outputfile("pdb", str(globalindex)+".pdb")
+    output.write(conf1)
+    output.close()
+  
+    toexe = "./fixpdb --remove-all-H2O --unkn-residue-to-grid-types --kout-out="+ \
+        str(globalindex)+".kout "+str(globalindex)+".pdb"
+    subprocess.call(toexe, shell=True)
+    
+    kontname = str(globalindex)+".kont"
+  
+    fg = open('grid.in','w')
+    fg.write("LONT togrid.lont\n")
+    fg.write("KONT "+kontname+"\n")
+    fg.write("INPT "+str(globalindex)+".kout\n")
+    fg.write("NPLA "+str(step)+"\n")
+    fg.write("TOPX "+str(xmax)+"\n")
+    fg.write("TOPY "+str(ymax)+"\n")
+    fg.write("TOPZ "+str(zmax)+"\n")
+    fg.write("BOTX "+str(xmin)+"\n")
+    fg.write("BOTY "+str(ymin)+"\n")
+    fg.write("BOTZ "+str(zmin)+"\n")
+    fg.write(probename+"\n")
+    fg.write("IEND\n")
+    fg.close()
+                                                                                                         
+    subprocess.call("./grid grid.in", shell=True)
+  
+    ifextrm ("./"+str(globalindex)+".pdb")
+    ifextrm ("./"+str(globalindex)+".kout")
+    ifextrm ("./grid.in")
+    ifextrm ("./togrid.lont")
+  
+    # read kont file
+    energy1 = readkontfile(kontname)
+  
+    print("nx: ", energy1.shape[0], " ny: ", energy1.shape[1], \
+        " nz: ", energy1.shape[2])
+  
+    ifextrm ("./"+kontname)
+  
+    print("Dealing with: ", kontname, " w: ", weights[globalindex])
+  
+    if  globalindex == 0:
+      nx = energy1.shape[0]
+      ny = energy1.shape[1]
+      nz = energy1.shape[2]
+      energy = numpy.arange(nx*ny*nz, dtype=float).reshape(nx, ny, nz)
+      energy = numpy.zeros([nx,ny,nz], float)
+  
+    energy = energy + weights1[globalindex] * energy1
+  
+    globalindex = globalindex + 1
+  
+  #energy = energy / float(globalindex)
+  #energytofile (energy, "mean.kont", xmin, ymin, zmin)
+  
+  fp.close()
+  
+  return energy, xmin, ymin, zmin
+
+###############################################################################
+
+
