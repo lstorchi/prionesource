@@ -1,15 +1,13 @@
 import re
 import os
 import sys
-import sets
 import math
 import glob
 import numpy
-import pybel
-import subprocess
 import os.path
-
 import warnings
+import argparse
+import subprocess
 
 from scipy import cluster
 
@@ -51,7 +49,7 @@ def write_to_cube (mol1, mol1field, fname, xnstep, ynstep, znstep,\
 
   opf = open(fname, "w")
 
-  print "Writing final cube... "
+  print("Writing final cube... ")
 
   zero = 0.0
   opf.write("El field\n")
@@ -84,46 +82,53 @@ def write_to_cube (mol1, mol1field, fname, xnstep, ynstep, znstep,\
 
 ###############################################################################
 
-filename = ""
-weightfile = ""
 probe = "DRY"
-#STEPVAL = 1.4
 STEPVAL = 0.5
 DELTAVAL = 10.0
 MINDIM = 0
 NUMOFCLUST = 0
 
+parser = argparse.ArgumentParser()
+parser.add_argument("-f","--file", help="input the mol2 list and weights file", \
+    required=True, default="", type=str)
+parser.add_argument("-p","--probe", help="the probe to be used [default="+probe+"]", \
+  required=False, default=probe, type=str)
+parser.add_argument("-s","--stepval", help="input stepval value [defaul="+str(STEPVAL)+"]", \
+  required=False, default=STEPVAL, type=float)
+parser.add_argument("-d","--deltaval", help="input deltaval value [defaul="+str(DELTAVAL)+"]", \
+  required=False, default=DELTAVAL, type=float)
+parser.add_argument("-m","--numofdim", help="input number of minima to be used [defaul="+ \
+  str(MINDIM)+"]", required=False, default=MINDIM, type=int)
+parser.add_argument("-c","--numofcluster", help="input number of clusters to be used [defaul=" + \
+  str(NUMOFCLUST)+"]", required=False, default=DELTAVAL, type=float)
 
-if (len(sys.argv)) == 7:
-    filename = sys.argv[1]
-    weightfile = sys.argv[2]
-    probe = sys.argv[3]
-    MINDIM = int(sys.argv[4])
-    NUMOFCLUST = int(sys.argv[5])
-    STEPVAL = float(sys.argv[6])
-else:
-    print "usage :", sys.argv[0] , \
-            " filename1.mol2 weight probe numofmin numofclust stepval"
-    exit(1)
+args = parser.parse_args()
+
+probe = args.probe
+MINDIM = args.numofdim
+NUMOFCLUST = args.numofcluster
+STEPVAL = args.stepval
+DELTAVAL = args.stepval
+
 
 if not os.path.isfile("./grid"):
-    print "we nee grid executable in the current dir"
+    print("we nee grid executable in the current dir")
     exit(1)
 
 if not os.path.isfile("./fixpdb"):
-    print "we nee fixpdb executable in the current dir"
+    print("we nee fixpdb executable in the current dir")
     exit(1)
 
-print "Computing grid fields ..."
+print("Computing grid fields ...")
 
 energy, xmin, ymin, zmin = gridfield.compute_grid_avg_field (filename, \
         weightfile, STEPVAL, DELTAVAL, probe)
 
 gridfield.energytofile (energy, "mean.kont", xmin, ymin, zmin, STEPVAL)
 
-xsets = sets.Set()
-ysets = sets.Set()
-zsets = sets.Set()
+xsets = set()
+ysets = set()
+zsets = set()
 
 evalset = []
 
@@ -138,7 +143,7 @@ nx = energy.shape[0]
 ny = energy.shape[1]
 nz = energy.shape[2]
 
-print "nx: ", nx, " ny: ", ny, " nz: ", nz
+print("nx: ", nx, " ny: ", ny, " nz: ", nz)
 
 for iz in range(0, nz):
   z = zmin + float(iz) * (1.0/STEPVAL)
@@ -181,17 +186,17 @@ topx = max(list(xsets))
 topy = max(list(ysets))
 topz = max(list(zsets))
 
-print "  Box "
-print "           x: {:.3f}".format(botx), " {:.3f}".format(topx)
-print "           y: {:.3f}".format(boty), " {:.3f}".format(topy)
-print "           z: {:.3f}".format(botz), " {:.3f}".format(topz)
+print("  Box ")
+print("           x: {:.3f}".format(botx), " {:.3f}".format(topx))
+print("           y: {:.3f}".format(boty), " {:.3f}".format(topy))
+print("           z: {:.3f}".format(botz), " {:.3f}".format(topz))
 
-print "  field sizes: ", len(xsets), len(ysets), len(zsets)
-print "           dx: {:.3f}".format(dx)
-print "           dy: {:.3f}".format(dy)
-print "           dz: {:.3f}".format(dz)
+print("  field sizes: ", len(xsets), len(ysets), len(zsets))
+print("           dx: {:.3f}".format(dx))
+print("           dy: {:.3f}".format(dy))
+print("           dz: {:.3f}".format(dz))
 
-print "Selecting min values ..."
+print("Selecting min values ...")
 
 mineval = []
 sortedeval = numpy.sort(evalset)
@@ -199,15 +204,15 @@ sortedeval = numpy.sort(evalset)
 for i in range(0, min(MINDIM, len(sortedeval))):
   mineval.append(sortedeval[i])
 
-print "Min values selected: "
+print("Min values selected: ")
 i = 1
 for m in mineval:
-    print i , " ==> " , m
+    print(i , " ==> " , m)
     i = i + 1
 
-print "Done..."
+print("Done...")
 
-print "Start computing ... "
+print("Start computing ... ")
 
 dimcube = 5
 
@@ -271,9 +276,9 @@ for ix in range(dimcube,nx-dimcube):
           ymin.append(y)
           zmin.append(z)
 
-print "Done "
+print("Done ")
 
-print "Start clustering ..."
+print("Start clustering ...")
 
 pointstocluster = numpy.zeros((len(minvals), 3))
 
@@ -285,7 +290,7 @@ for i in range(0,len(minvals)):
 with warnings.catch_warnings(record=True) as w:
     centroids, selected = cluster.vq.kmeans2 (pointstocluster, NUMOFCLUST)
     if len(w) != 0:
-        print w[-1].message
+        print(w[-1].message)
         #exit(1)
 
 numofcluster = 0
@@ -295,7 +300,7 @@ for j in range(0, NUMOFCLUST):
             numofcluster = numofcluster + 1
             break
 
-print "Final num of cluster: ", numofcluster
+print("Final num of cluster: ", numofcluster)
 
 centroidvals = []
 
@@ -313,8 +318,8 @@ xyzf = open("./centroid.xyz", "w")
 xyzf.write(str(numofcluster)+"\n")
 xyzf.write(" \n")
 
-print "Controid"
-print "X          Y          Z          EMIN       RMIN       RMAX       RAVG"
+print("Controid")
+print("X          Y          Z          EMIN       RMIN       RMAX       RAVG")
 for j in range(0, NUMOFCLUST):
   rmin = float('inf')
   rmax = -1.0
@@ -343,17 +348,17 @@ for j in range(0, NUMOFCLUST):
             centroids[j][0], centroids[j][1], \
             centroids[j][2]))
     
-    print "%10.5f"%centroids[j][0], \
+    print("%10.5f"%centroids[j][0], \
             "%10.5f"%centroids[j][1], \
             "%10.5f"%centroids[j][2], \
             "%10.5f"%centroidvals[j], \
             "%10.5f"%rmin, \
             "%10.5f"%rmax, \
-            "%10.5f"%ravg
+            "%10.5f"%ravg)
 
 xyzf.close()
 
-'''
+"""
 centroids_energy = numpy.arange(nx*ny*nz, dtype=float).reshape(nx, ny, nz)
 
 for ix in range(0,nx):
@@ -381,6 +386,6 @@ write_to_cube (mol1, min_energy, "minim.cube", nx, ny, nz, \
 
 write_to_cube (mol1, centroids_energy, "centroid.cube", nx, ny, nz, \
     dx, botx, boty, botz)
-'''
+"""
 
-print "Done "
+print("Done ")

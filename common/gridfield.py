@@ -1,13 +1,10 @@
 import scipy.spatial
 import subprocess
-import openbabel
+import os.path
 import numpy 
-import pybel
-import sets
 import math
 import re
 import os
-import os.path
 
 ###############################################################################
 
