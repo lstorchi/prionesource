@@ -515,6 +515,8 @@ def compute_grid_mean_field (filename, step, delta, \
   for conf in fp:
 
     sl = conf.split()
+    
+    ifextrm ("./"+str(globalindex)+".pdb")
 
     toexe = "obabel -imol2 " + sl[0] + " -opdb -O " + "./"+str(globalindex)+".pdb"
     subprocess.call(toexe, shell=True)
@@ -541,6 +543,8 @@ def compute_grid_mean_field (filename, step, delta, \
     fg.close()
                                                                                                          
     subprocess.call("./grid grid.in", shell=True)
+
+    exit(1)
   
     ifextrm ("./"+str(globalindex)+".pdb")
     ifextrm ("./"+str(globalindex)+".kout")
