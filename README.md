@@ -7,7 +7,7 @@ python3 mol2todx.py -s 2.0 -f lista_wtype.txt --interpolate lista_wtype_coulomb_
 python3 mol2todx.py -s 2.0 -f lista_wtype.txt -c --interpolate lista_wtype_coulomb_mean.dx 2> lista_wtype_dx_apbs_flat.txt
 
 python3 mol2tocoulombdx.py -s 2.0 -d 30.0 -f lista_e200k.txt -v --interpolate lista_wtype_coulomb_mean.dx 2> lista_e200k_dx_coulomb.txt
-python3 mol2tocoulombdx.py -s 2.0 -d 30.0 -f lista_e200k.txt -v --ddielectric --ddielectric --interpolate lista_wtype_coulomb_mean.dx 2> lista_e200k_dx_coulomb_ddielectric.tx
+python3 mol2tocoulombdx.py -s 2.0 -d 30.0 -f lista_e200k.txt -v --ddielectric --ddielectric --interpolate lista_wtype_coulomb_mean.dx 2> lista_e200k_dx_coulomb_ddielectric.txt
 
 python3 mol2todx.py -s 2.0 -f lista_e200k.txt --interpolate lista_wtype_coulomb_mean.dx 2> lista_e200k_dx_apbs.txt
 python3 mol2todx.py -s 2.0 -f lista_e200k.txt -c --interpolate lista_wtype_coulomb_mean.dx 2> lista_e200k_dx_apbs_flat.txt

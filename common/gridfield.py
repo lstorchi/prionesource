@@ -514,11 +514,10 @@ def compute_grid_mean_field (filename, step, delta, \
   fp = open(filename, "r")
   for conf in fp:
 
-    ifextrm ("./"+str(globalindex)+".pdb")
+    sl = conf.split()
 
-    output = pybel.Outputfile("pdb", str(globalindex)+".pdb")
-    output.write(conf1)
-    output.close()
+    toexe = "obabel -imol2 " + sl[0] + " -opdb -O " + "./"+str(globalindex)+".pdb"
+    subprocess.call(toexe, shell=True)
   
     toexe = "./fixpdb --remove-all-H2O --unkn-residue-to-grid-types --kout-out="+ \
         str(globalindex)+".kout "+str(globalindex)+".pdb"
