@@ -556,7 +556,7 @@ def compute_grid_mean_field (filename, step, delta, \
     print("nx: ", lenergy.shape[0], " ny: ", lenergy.shape[1], \
         " nz: ", lenergy.shape[2])
   
-    #ifextrm ("./"+kontname)
+    ifextrm ("./"+kontname)
   
     print("Dealing with: ", kontname, " w: ", weights[globalindex])
   
@@ -568,7 +568,6 @@ def compute_grid_mean_field (filename, step, delta, \
       energy = numpy.zeros([nx,ny,nz], float)
 
     energy += weights[globalindex] * lenergy
-
   
     globalindex = globalindex + 1
   
