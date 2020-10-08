@@ -103,6 +103,8 @@ parser.add_argument("-m","--numofdim", help="input number of minima to be used [
   str(MINDIM)+"]", required=False, default=MINDIM, type=int)
 parser.add_argument("-c","--numofcluster", help="input number of clusters to be used [defaul=" + \
   str(NUMOFCLUST)+"]", required=False, default=NUMOFCLUST, type=int)
+parser.add_argument("--outfname", help="output filename for centroinds [default=centroids.xyz]",  \
+  required=False, default="centroids.xyz", type=str)
 
 args = parser.parse_args()
 
@@ -320,9 +322,9 @@ for j in range(0,len(selected)):
   idx = selected[j]
   centroidvals[idx] += minvals[j] 
 
-gridfield.ifextrm("./centroid.xyz")
+gridfield.ifextrm(args.outfname)
 
-xyzf = open("./centroid.xyz", "w")
+xyzf = open(args.outfname, "w")
 
 xyzf.write(str(numofcluster)+"\n")
 xyzf.write(" \n")
