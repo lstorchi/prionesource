@@ -50,9 +50,9 @@ def readkontfile (kontname):
 
   fk = open(kontname)
 
-  xsets = sets.Set()
-  ysets = sets.Set()
-  zsets = sets.Set()
+  xsets = set()
+  ysets = set()
+  zsets = set()
   switchtofieldm = False
 
   nx = ny = nz = 0
@@ -75,7 +75,8 @@ def readkontfile (kontname):
 
         e = float(line)
         energy[ix, iy, iz] = e
-        #print ix, iy, iz, e
+        #if e != 0.0:
+        #  print (ix, iy, iz, e)
 
         # seguo la logica con cui sono scritti i kont ascii senza fare deduzioni
         # ovviamente va migliorato
@@ -156,8 +157,6 @@ def compute_grid_avg_field (filename1, weightfile, STEPVAL, DELTAVAL, \
   zmax = float("-inf")
   
   readlist = list(pybel.readfile("mol2", filename1))
-  
-  
   
   mol1list = readlist
   
@@ -271,8 +270,6 @@ def compute_grid_avg_field (filename1, weightfile, STEPVAL, DELTAVAL, \
   #zmax =  30.000
   
   print("Grid will be used: ", xmin, ymin, zmin, xmax, ymax, zmax)
-  
-  xnsteps = int((xmax - xmin) / 1.0) + 1
   
   weights1 = []
   weightsfp1 = open(weightfile)
@@ -502,8 +499,6 @@ def compute_grid_mean_field (filename, step, delta, \
   
   print("Grid will be used: ", xmin, ymin, zmin, xmax, ymax, zmax)
   
-  xnsteps = int((xmax - xmin) / step) + 1
-  
   if (len(mollist) != len(weights)):
     print("Dimension error ", len(mol1list) , " vs " , \
       len(weights1))
@@ -519,11 +514,15 @@ def compute_grid_mean_field (filename, step, delta, \
     ifextrm ("./"+str(globalindex)+".pdb")
 
     toexe = "obabel -imol2 " + sl[0] + " -opdb -O " + "./"+str(globalindex)+".pdb"
-    subprocess.call(toexe, shell=True)
+    results  = subprocess.run(toexe, shell=True, check=True, \
+      stdout=subprocess.PIPE, stderr=subprocess.PIPE, \
+      universal_newlines=True)
   
     toexe = "./fixpdb --remove-all-H2O --unkn-residue-to-grid-types --kout-out="+ \
         str(globalindex)+".kout "+str(globalindex)+".pdb"
-    subprocess.call(toexe, shell=True)
+    results  = subprocess.run(toexe, shell=True, check=True, \
+      stdout=subprocess.PIPE, stderr=subprocess.PIPE, \
+      universal_newlines=True)
     
     kontname = str(globalindex)+".kont"
   
@@ -531,7 +530,7 @@ def compute_grid_mean_field (filename, step, delta, \
     fg.write("LONT togrid.lont\n")
     fg.write("KONT "+kontname+"\n")
     fg.write("INPT "+str(globalindex)+".kout\n")
-    fg.write("NPLA "+str(step)+"\n")
+    fg.write("NPLA "+str(1.0/step)+"\n")
     fg.write("TOPX "+str(xmax)+"\n")
     fg.write("TOPY "+str(ymax)+"\n")
     fg.write("TOPZ "+str(zmax)+"\n")
@@ -542,33 +541,34 @@ def compute_grid_mean_field (filename, step, delta, \
     fg.write("IEND\n")
     fg.close()
                                                                                                          
-    subprocess.call("./grid grid.in", shell=True)
+    results  = subprocess.run("./grid grid.in", shell=True, check=True, \
+      stdout=subprocess.PIPE, stderr=subprocess.PIPE, \
+      universal_newlines=True)
 
-    exit(1)
-  
     ifextrm ("./"+str(globalindex)+".pdb")
     ifextrm ("./"+str(globalindex)+".kout")
     ifextrm ("./grid.in")
     ifextrm ("./togrid.lont")
   
     # read kont file
-    energy1 = readkontfile(kontname)
+    lenergy = readkontfile(kontname)
   
-    print("nx: ", energy1.shape[0], " ny: ", energy1.shape[1], \
-        " nz: ", energy1.shape[2])
+    print("nx: ", lenergy.shape[0], " ny: ", lenergy.shape[1], \
+        " nz: ", lenergy.shape[2])
   
-    ifextrm ("./"+kontname)
+    #ifextrm ("./"+kontname)
   
     print("Dealing with: ", kontname, " w: ", weights[globalindex])
   
     if  globalindex == 0:
-      nx = energy1.shape[0]
-      ny = energy1.shape[1]
-      nz = energy1.shape[2]
+      nx = lenergy.shape[0]
+      ny = lenergy.shape[1]
+      nz = lenergy.shape[2]
       energy = numpy.arange(nx*ny*nz, dtype=float).reshape(nx, ny, nz)
       energy = numpy.zeros([nx,ny,nz], float)
-  
-    energy = energy + weights1[globalindex] * energy1
+
+    energy += weights[globalindex] * lenergy
+
   
     globalindex = globalindex + 1
   
@@ -576,7 +576,16 @@ def compute_grid_mean_field (filename, step, delta, \
   #energytofile (energy, "mean.kont", xmin, ymin, zmin)
   
   fp.close()
-  
+
+  """
+  for i in range(energy.shape[0]):
+    for j in range(energy.shape[1]):
+      for k in range(energy.shape[2]):
+        e = energy[i, j, k]
+        if e != 0.0:
+          print(e)
+  """
+
   return energy, xmin, ymin, zmin
 
 ###############################################################################

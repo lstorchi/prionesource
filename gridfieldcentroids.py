@@ -83,10 +83,10 @@ def write_to_cube (mol1, mol1field, fname, xnstep, ynstep, znstep,\
 ###############################################################################
 
 probe = "DRY"
-STEPVAL = 0.5
+STEPVAL = 2.0
 DELTAVAL = 10.0
-MINDIM = 0
-NUMOFCLUST = 0
+MINDIM = 30
+NUMOFCLUST = 4
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-f","--file", help="input the mol2 list and weights file", \
@@ -102,7 +102,7 @@ parser.add_argument("-d","--deltaval", help="input deltaval value [defaul="+str(
 parser.add_argument("-m","--numofdim", help="input number of minima to be used [defaul="+ \
   str(MINDIM)+"]", required=False, default=MINDIM, type=int)
 parser.add_argument("-c","--numofcluster", help="input number of clusters to be used [defaul=" + \
-  str(NUMOFCLUST)+"]", required=False, default=DELTAVAL, type=float)
+  str(NUMOFCLUST)+"]", required=False, default=NUMOFCLUST, type=int)
 
 args = parser.parse_args()
 
@@ -111,6 +111,14 @@ MINDIM = args.numofdim
 NUMOFCLUST = args.numofcluster
 STEPVAL = args.stepval
 DELTAVAL = args.stepval
+
+if MINDIM <= NUMOFCLUST:
+  print("Error MINDIM <= NUMOFCLUST ", MINDIM, NUMOFCLUST)
+  exit()
+
+if MINDIM <= 0 or NUMOFCLUST <= 0:
+  print("Invalid value of MINDIST or NUMOCLUST")
+  exit(1)
 
 
 if not os.path.isfile("./grid"):
@@ -144,8 +152,6 @@ xyzval_to_ixyz_map = {}
 nx = energy.shape[0]
 ny = energy.shape[1]
 nz = energy.shape[2]
-
-print("nx: ", nx, " ny: ", ny, " nz: ", nz)
 
 for iz in range(0, nz):
   z = zmin + float(iz) * (1.0/STEPVAL)
@@ -202,15 +208,16 @@ print("Selecting min values ...")
 
 mineval = []
 sortedeval = numpy.sort(evalset)
+print(sortedeval)
 
 for i in range(0, min(MINDIM, len(sortedeval))):
   mineval.append(sortedeval[i])
+print(mineval)
+
 
 print("Min values selected: ")
-i = 1
-for m in mineval:
-    print(i , " ==> " , m)
-    i = i + 1
+for i, m in enumerate(mineval):
+    print("%5d ==> %10.4f"%(i+1, m))
 
 print("Done...")
 
