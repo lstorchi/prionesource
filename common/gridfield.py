@@ -500,8 +500,8 @@ def compute_grid_mean_field (filename, step, delta, \
   print("Grid will be used: ", xmin, ymin, zmin, xmax, ymax, zmax)
   
   if (len(mollist) != len(weights)):
-    print("Dimension error ", len(mol1list) , " vs " , \
-      len(weights1))
+    print("Dimension error ", len(mollist) , " vs " , \
+      len(weights))
     exit(1)
 
   energy = numpy.empty([1,1,1], float)
