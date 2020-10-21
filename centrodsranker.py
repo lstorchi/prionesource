@@ -1,6 +1,9 @@
 import os
+import numpy
 import argparse
 import subprocess
+
+import gridfieldcentroids
 
 def split_PDBfile_by_chains(filename, chainlist) :
 
@@ -27,7 +30,14 @@ if __name__ == "__main__":
     chainlist = ["A", "B"]
     split_PDBfile_by_chains (args.file, chainlist)
 
+    STEPVAL = 2.0
+    NUMOFCLUST = 3
+    MINDIM = 10
+
     for c in chainlist:
+        energy = numpy.zeros((10,10,10))
+
+        gridfieldcentroids.get_centroids(energy, STEPVAL, NUMOFCLUST, MINDIM, 0.0, 0.0, 0.0)
 
         os.remove(c+".pdb")
 

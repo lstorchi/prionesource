@@ -82,63 +82,7 @@ def write_to_cube (mol1, mol1field, fname, xnstep, ynstep, znstep,\
 
 ###############################################################################
 
-if __name__ == "__main__":
-
-  probe = "DRY"
-  STEPVAL = 2.0
-  DELTAVAL = 10.0
-  MINDIM = 30
-  NUMOFCLUST = 4
-
-  parser = argparse.ArgumentParser()
-  parser.add_argument("-f","--file", help="input the mol2 list and weights file", \
-      required=True, default="", type=str)
-  parser.add_argument("-o","--output", help="output filename ", \
-      required=False, default="mean.kont", type=str)
-  parser.add_argument("-p","--probe", help="the probe to be used [default="+probe+"]", \
-    required=False, default=probe, type=str)
-  parser.add_argument("-s","--stepval", help="input stepval value [defaul="+str(STEPVAL)+"]", \
-    required=False, default=STEPVAL, type=float)
-  parser.add_argument("-d","--deltaval", help="input deltaval value [defaul="+str(DELTAVAL)+"]", \
-    required=False, default=DELTAVAL, type=float)
-  parser.add_argument("-m","--numofdim", help="input number of minima to be used [defaul="+ \
-    str(MINDIM)+"]", required=False, default=MINDIM, type=int)
-  parser.add_argument("-c","--numofcluster", help="input number of clusters to be used [defaul=" + \
-    str(NUMOFCLUST)+"]", required=False, default=NUMOFCLUST, type=int)
-  parser.add_argument("--outfname", help="output filename for centroinds [default=centroids.xyz]",  \
-    required=False, default="centroids.xyz", type=str)
-
-  args = parser.parse_args()
-
-  probe = args.probe
-  MINDIM = args.numofdim
-  NUMOFCLUST = args.numofcluster
-  STEPVAL = args.stepval
-  DELTAVAL = args.stepval
-
-  if MINDIM <= NUMOFCLUST:
-    print("Error MINDIM <= NUMOFCLUST ", MINDIM, NUMOFCLUST)
-    exit()
-
-  if MINDIM <= 0 or NUMOFCLUST <= 0:
-    print("Invalid value of MINDIST or NUMOCLUST")
-    exit(1)
-
-
-  if not os.path.isfile("./grid"):
-      print("we need grid executable in the current dir")
-      exit(1)
-
-  if not os.path.isfile("./fixpdb"):
-      print("we need fixpdb executable in the current dir")
-      exit(1)
-
-  print("Computing grid fields ...")
-
-  energy, xmin, ymin, zmin = gridfield.compute_grid_mean_field (args.file, \
-          STEPVAL, DELTAVAL, probe)
-
-  gridfield.energytofile (energy, args.output, xmin, ymin, zmin, STEPVAL)
+def get_centroids(energy, STEPVAL, NUMOFCLUST, MINDIM, xmin, ymin, zmin):
 
   xsets = set()
   ysets = set()
@@ -371,34 +315,67 @@ if __name__ == "__main__":
 
   xyzf.close()
 
-  """
-  centroids_energy = numpy.arange(nx*ny*nz, dtype=float).reshape(nx, ny, nz)
+###############################################################################
 
-  for ix in range(0,nx):
-    for iy in range(0,ny):
-      for iz in range(0,nz):
-        centroids_energy[ix, iy, iz] = 0.0
 
-  for j in range(0, NUMOFCLUST):
-    ixc = int((centroids[j, 0] - botx) / dx)
-    iyc = int((centroids[j, 1] - boty) / dy)
-    izc = int((centroids[j, 2] - botz) / dz)
+if __name__ == "__main__":
 
-    centroids_energy[ixc, iyc, izc] = centroidvals[j]
+  probe = "DRY"
+  STEPVAL = 2.0
+  DELTAVAL = 10.0
+  MINDIM = 30
+  NUMOFCLUST = 4
 
-    #print ixc, iyc, izc, centroidvals[j]
+  parser = argparse.ArgumentParser()
+  parser.add_argument("-f","--file", help="input the mol2 list and weights file", \
+      required=True, default="", type=str)
+  parser.add_argument("-o","--output", help="output filename ", \
+      required=False, default="mean.kont", type=str)
+  parser.add_argument("-p","--probe", help="the probe to be used [default="+probe+"]", \
+    required=False, default=probe, type=str)
+  parser.add_argument("-s","--stepval", help="input stepval value [defaul="+str(STEPVAL)+"]", \
+    required=False, default=STEPVAL, type=float)
+  parser.add_argument("-d","--deltaval", help="input deltaval value [defaul="+str(DELTAVAL)+"]", \
+    required=False, default=DELTAVAL, type=float)
+  parser.add_argument("-m","--numofdim", help="input number of minima to be used [defaul="+ \
+    str(MINDIM)+"]", required=False, default=MINDIM, type=int)
+  parser.add_argument("-c","--numofcluster", help="input number of clusters to be used [defaul=" + \
+    str(NUMOFCLUST)+"]", required=False, default=NUMOFCLUST, type=int)
+  parser.add_argument("--outfname", help="output filename for centroinds [default=centroids.xyz]",  \
+    required=False, default="centroids.xyz", type=str)
 
-  print "Done "
+  args = parser.parse_args()
 
-  print "Writing results ..."
+  probe = args.probe
+  MINDIM = args.numofdim
+  NUMOFCLUST = args.numofcluster
+  STEPVAL = args.stepval
+  DELTAVAL = args.stepval
 
-  mol1 = pybel.readfile("mol2", filenamemol2).next()
+  if MINDIM <= NUMOFCLUST:
+    print("Error MINDIM <= NUMOFCLUST ", MINDIM, NUMOFCLUST)
+    exit()
 
-  write_to_cube (mol1, min_energy, "minim.cube", nx, ny, nz, \
-      dx, botx, boty, botz)
+  if MINDIM <= 0 or NUMOFCLUST <= 0:
+    print("Invalid value of MINDIST or NUMOCLUST")
+    exit(1)
 
-  write_to_cube (mol1, centroids_energy, "centroid.cube", nx, ny, nz, \
-      dx, botx, boty, botz)
-  """
+
+  if not os.path.isfile("./grid"):
+      print("we need grid executable in the current dir")
+      exit(1)
+
+  if not os.path.isfile("./fixpdb"):
+      print("we need fixpdb executable in the current dir")
+      exit(1)
+
+  print("Computing grid fields ...")
+
+  energy, xmin, ymin, zmin = gridfield.compute_grid_mean_field (args.file, \
+          STEPVAL, DELTAVAL, probe)
+
+  gridfield.energytofile (energy, args.output, xmin, ymin, zmin, STEPVAL)
+
+  get_centroids(energy, STEPVAL, NUMOFCLUST, MINDIM, xmin, ymin, zmin)
 
   print("Done ")
