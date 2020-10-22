@@ -82,7 +82,8 @@ def write_to_cube (mol1, mol1field, fname, xnstep, ynstep, znstep,\
 
 ###############################################################################
 
-def get_centroids(energy, STEPVAL, NUMOFCLUST, MINDIM, xmin, ymin, zmin):
+def get_centroids(energy, STEPVAL, NUMOFCLUST, MINDIM, xmin, ymin, zmin, \
+  outfname=""):
 
   xsets = set()
   ysets = set()
@@ -268,12 +269,16 @@ def get_centroids(energy, STEPVAL, NUMOFCLUST, MINDIM, xmin, ymin, zmin):
     idx = selected[j]
     centroidvals[idx] += minvals[j] 
 
-  gridfield.ifextrm(args.outfname)
+  xyzf = None
+  if outfname != "":
+    gridfield.ifextrm(outfname)
+    xyzf = open(outfname, "w")
+    xyzf.write(str(numofcluster)+"\n")
+    xyzf.write(" \n")
 
-  xyzf = open(args.outfname, "w")
-
-  xyzf.write(str(numofcluster)+"\n")
-  xyzf.write(" \n")
+  rmins = []
+  rmaxs = []
+  ravgs = []
 
   print("Controid")
   print("X          Y          Z          EMIN       RMIN       RMAX       RAVG")
@@ -300,10 +305,15 @@ def get_centroids(energy, STEPVAL, NUMOFCLUST, MINDIM, xmin, ymin, zmin):
 
     if dim != 0.0:
       ravg = ravg / dim
-              
-      xyzf.write(" H %10.5f %10.5f %10.5f\n"%(\
+
+      if outfname != "":
+        xyzf.write(" H %10.5f %10.5f %10.5f\n"%(\
               centroids[j][0], centroids[j][1], \
               centroids[j][2]))
+
+      rmins.append(rmin) 
+      rmaxs.append(rmax)
+      ravgs.append(ravg)
       
       print("%10.5f"%centroids[j][0], \
               "%10.5f"%centroids[j][1], \
@@ -313,10 +323,12 @@ def get_centroids(energy, STEPVAL, NUMOFCLUST, MINDIM, xmin, ymin, zmin):
               "%10.5f"%rmax, \
               "%10.5f"%ravg)
 
-  xyzf.close()
+  if outfname != "":
+    xyzf.close()
+
+  return centroids, centroidvals, rmins, rmaxs, ravgs
 
 ###############################################################################
-
 
 if __name__ == "__main__":
 
@@ -376,6 +388,7 @@ if __name__ == "__main__":
 
   gridfield.energytofile (energy, args.output, xmin, ymin, zmin, STEPVAL)
 
-  get_centroids(energy, STEPVAL, NUMOFCLUST, MINDIM, xmin, ymin, zmin)
+  get_centroids(energy, STEPVAL, NUMOFCLUST, MINDIM, xmin, ymin, zmin, \
+     args.outfname)
 
   print("Done ")

@@ -178,6 +178,35 @@ def get_damped_eps (refpoint, mol1coord, mol1charges, \
 
 ###############################################################
 
+def pdbatomextractor (file=None):
+
+  from Bio.PDB.PDBParser import PDBParser
+  
+  parser=PDBParser(PERMISSIVE=1)
+  
+  structure = parser.get_structure("singelemodel", file)
+
+  mols = []
+
+  for model in structure:
+
+    id = 1
+    mol = []
+    for chain in model:
+      for residue in chain:
+        for a in residue:
+          coords = a.get_coord()
+          #print(id, residue.get_resname(), a.get_name(), coords)
+          a = atom(id, a.get_name(), coords[0], coords[1], coords[2], 0.0 )
+          mol.append(a)
+          id += 1
+
+    mols.append(mol)
+
+  return mols
+
+###############################################################
+
 def mol2atomextractor (file=None, readresname= False):
   
   mols = []

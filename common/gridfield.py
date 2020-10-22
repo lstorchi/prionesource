@@ -439,7 +439,7 @@ def read_kontfile (kontname):
 ###############################################################################
 
 def compute_grid_mean_field (filename, step, delta, \
-        probename):
+        probename, mol2pdb=True):
 
   # generate grid 
   xmin = float("inf")
@@ -463,7 +463,13 @@ def compute_grid_mean_field (filename, step, delta, \
     weights.append(float(sl[1]))
     sum += float(sl[1])
 
-    m = carbo.mol2atomextractor(sl[0])
+    m = None
+    
+    if mol2pdb:
+      m = carbo.mol2atomextractor(sl[0])
+    else:
+      m = carbo.pdbatomextractor(sl[0])
+
     mollist.extend(m)
   
   fp.close()
@@ -513,10 +519,15 @@ def compute_grid_mean_field (filename, step, delta, \
     
     ifextrm ("./"+str(globalindex)+".pdb")
 
-    toexe = "obabel -imol2 " + sl[0] + " -opdb -O " + "./"+str(globalindex)+".pdb"
-    results  = subprocess.run(toexe, shell=True, check=True, \
-      stdout=subprocess.PIPE, stderr=subprocess.PIPE, \
-      universal_newlines=True)
+    if mol2pdb:
+      toexe = "obabel -imol2 " + sl[0] + " -opdb -O " + "./"+str(globalindex)+".pdb"
+      results  = subprocess.run(toexe, shell=True, check=True, \
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, \
+        universal_newlines=True)
+    else:
+      from shutil import copyfile
+      copyfile (sl[0], str(globalindex)+".pdb")
+
   
     toexe = "./fixpdb --remove-all-H2O --unkn-residue-to-grid-types --kout-out="+ \
         str(globalindex)+".kout "+str(globalindex)+".pdb"
