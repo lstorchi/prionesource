@@ -92,9 +92,9 @@ if __name__ == "__main__":
         valuefp.append((centroids, centroidvals, rmins, rmaxs, ravgs))
         os.remove(c+".pdb")
 
-    print("Controids")
+    print("Centroids")
     print("X          Y          Z          EMIN       RMIN       RMAX       RAVG")
-    for v in valuefp:
+    for idx, v in enumerate(valuefp):
         centroids = v[0]
         centroidvals = v[1]
         rmin = v[2]
@@ -102,7 +102,7 @@ if __name__ == "__main__":
         ravg = v[4]
 
         for j in range(len(centroids)):
-          print("%10.5f"%centroids[j][0], \
+          print("CENTVAL %4d %10.5f"%(idx, centroids[j][0]), \
               "%10.5f"%centroids[j][1], \
               "%10.5f"%centroids[j][2], \
               "%10.5f"%centroidvals[j], \

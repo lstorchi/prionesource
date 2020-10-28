@@ -303,7 +303,7 @@ def get_centroids(energy, STEPVAL, NUMOFCLUST, MINDIM, xmin, ymin, zmin, \
   rmaxs = []
   ravgs = []
 
-  print("Controid")
+  print("Centroid")
   print("X          Y          Z          EMIN       RMIN       RMAX       RAVG")
   for j in range(0, NUMOFCLUST):
     rmin = float('inf')
