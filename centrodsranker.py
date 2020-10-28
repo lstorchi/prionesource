@@ -106,9 +106,9 @@ if __name__ == "__main__":
               "%10.5f"%centroids[j][1], \
               "%10.5f"%centroids[j][2], \
               "%10.5f"%centroidvals[j], \
-              "%10.5f"%rmins[j], \
-              "%10.5f"%rmaxs[j], \
-              "%10.5f"%ravgs[j])
+              "%10.5f"%rmin[j], \
+              "%10.5f"%rmax[j], \
+              "%10.5f"%ravg[j])
         print("")
 
     for i in range(len(valuefp)):

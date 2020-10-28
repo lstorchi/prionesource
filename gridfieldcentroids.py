@@ -9,7 +9,9 @@ import warnings
 import argparse
 import subprocess
 
-from scipy import cluster
+#from scipy import cluster
+
+from sklearn.cluster import KMeans
 
 sys.path.append("./common")
 import gridfield
@@ -245,11 +247,32 @@ def get_centroids(energy, STEPVAL, NUMOFCLUST, MINDIM, xmin, ymin, zmin, \
     pointstocluster[i,1] = ymin[i]
     pointstocluster[i,2] = zmin[i]
 
-  with warnings.catch_warnings(record=True) as w:
-      centroids, selected = cluster.vq.kmeans2 (pointstocluster, NUMOFCLUST)
-      if len(w) != 0:
-          print(w[-1].message)
-          #exit(1)
+  kmeans = KMeans(init="random", n_clusters=NUMOFCLUST, \
+    n_init=10, max_iter=300, random_state=42)
+
+  kmeans.fit(pointstocluster)
+  selected = kmeans.labels_
+  centroids = kmeans.cluster_centers_
+
+  done = False
+  while not done:
+    kmeans = KMeans(init=centroids,  n_clusters=NUMOFCLUST, \
+      n_init=1, max_iter=300, random_state=42)
+    kmeans.fit(pointstocluster)
+    newcentroids = kmeans.cluster_centers_
+    newselected = kmeans.labels_
+
+    if centroids.shape == centroids.shape:
+      done = (newcentroids == centroids).all()
+      centroids = newcentroids
+      selected = newselected
+    else:
+      done = False
+
+  #with warnings.catch_warnings(record=True) as w:
+  #   centroids, selected = cluster.vq.kmeans2 (pointstocluster, NUMOFCLUST)
+  #   if len(w) != 0:
+  #      print(w[-1].message)
 
   numofcluster = 0
   for j in range(0, NUMOFCLUST):
@@ -310,10 +333,6 @@ def get_centroids(energy, STEPVAL, NUMOFCLUST, MINDIM, xmin, ymin, zmin, \
         xyzf.write(" H %10.5f %10.5f %10.5f\n"%(\
               centroids[j][0], centroids[j][1], \
               centroids[j][2]))
-
-      rmins.append(rmin) 
-      rmaxs.append(rmax)
-      ravgs.append(ravg)
       
       print("%10.5f"%centroids[j][0], \
               "%10.5f"%centroids[j][1], \
@@ -322,6 +341,16 @@ def get_centroids(energy, STEPVAL, NUMOFCLUST, MINDIM, xmin, ymin, zmin, \
               "%10.5f"%rmin, \
               "%10.5f"%rmax, \
               "%10.5f"%ravg)
+
+      rmins.append(rmin) 
+      rmaxs.append(rmax)
+      ravgs.append(ravg)
+    else:
+      rmins.append(rmin) 
+      rmaxs.append(rmax)
+      ravgs.append(ravg)
+
+
 
   if outfname != "":
     xyzf.close()
