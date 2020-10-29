@@ -63,6 +63,8 @@ if __name__ == "__main__":
       str(MINDIM)+"]", required=False, default=MINDIM, type=int)
     parser.add_argument("-c","--numofcluster", help="input number of clusters to be used [defaul=" + \
       str(NUMOFCLUST)+"]", required=False, default=NUMOFCLUST, type=int)
+    parser.add_argument("-e","--eminilimit", help="input the emin minimun value", \
+        required=True, default=0.0, type=float)
 
     args = parser.parse_args()
 
@@ -88,7 +90,7 @@ if __name__ == "__main__":
         os.remove(listaname)
 
         centroids, centroidvals, rmins, rmaxs, ravgs = gridfieldcentroids.get_centroids(energy, \
-            STEPVAL, NUMOFCLUST, MINDIM, xmin, ymin, zmin, minimaselection=-0.8)
+            STEPVAL, NUMOFCLUST, MINDIM, xmin, ymin, zmin, minimaselection=args.eminilimit)
 
         valuefp.append((centroids, centroidvals, rmins, rmaxs, ravgs))
         os.remove(c+".pdb")
