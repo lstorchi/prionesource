@@ -11,6 +11,8 @@ import gridfieldcentroids
 sys.path.append("./common")
 import gridfield
 
+DUMPCENTROIDS = True
+
 ###############################################################
 
 def split_PDBfile_by_chains(filename, chainlist) :
@@ -73,7 +75,6 @@ if __name__ == "__main__":
     chainlist = ["A", "B"]
     split_PDBfile_by_chains (args.file, chainlist)
 
-
     valuefp = []
 
     for c in chainlist:
@@ -87,10 +88,17 @@ if __name__ == "__main__":
         os.remove(listaname)
 
         centroids, centroidvals, rmins, rmaxs, ravgs = gridfieldcentroids.get_centroids(energy, \
-            STEPVAL, NUMOFCLUST, MINDIM, 0.0, 0.0, 0.0)
+            STEPVAL, NUMOFCLUST, MINDIM, xmin, ymin, zmin, minimaselection=-0.8)
 
         valuefp.append((centroids, centroidvals, rmins, rmaxs, ravgs))
         os.remove(c+".pdb")
+
+    gp = None
+
+    if DUMPCENTROIDS:
+        gp = open("centroids.xyz", "w")
+        gp.write("%d\n"%(2*NUMOFCLUST))
+        gp.write("\n")
 
     print("Centroids")
     print("X          Y          Z          EMIN       RMIN       RMAX       RAVG")
@@ -102,6 +110,14 @@ if __name__ == "__main__":
         ravg = v[4]
 
         for j in range(len(centroids)):
+          if DUMPCENTROIDS:
+            if idx == 0:
+                gp.write("H %10.5f %10.5f %10.5f\n"%(centroids[j][0], \
+                  centroids[j][1], centroids[j][2]))
+            else:
+                gp.write("O %10.5f %10.5f %10.5f\n"%(centroids[j][0], \
+                   centroids[j][1], centroids[j][2]))
+         
           print("CENTVAL %4d %10.5f"%(idx, centroids[j][0]), \
               "%10.5f"%centroids[j][1], \
               "%10.5f"%centroids[j][2], \
@@ -110,6 +126,9 @@ if __name__ == "__main__":
               "%10.5f"%rmax[j], \
               "%10.5f"%ravg[j])
         print("")
+
+    if DUMPCENTROIDS:    
+        gp.close()
 
     for i in range(len(valuefp)):
         cxyz1 = valuefp[i][0]

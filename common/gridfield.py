@@ -502,7 +502,7 @@ def compute_grid_mean_field (filename, step, delta, \
   
   zmin = zmin - delta
   zmax = zmax + delta
-  
+
   print("Grid will be used: ", xmin, ymin, zmin, xmax, ymax, zmax)
   
   if (len(mollist) != len(weights)):

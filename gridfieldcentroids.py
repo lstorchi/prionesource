@@ -9,7 +9,7 @@ import warnings
 import argparse
 import subprocess
 
-#from scipy import cluster
+from scipy import cluster
 
 from sklearn.cluster import KMeans
 
@@ -85,7 +85,7 @@ def write_to_cube (mol1, mol1field, fname, xnstep, ynstep, znstep,\
 ###############################################################################
 
 def get_centroids(energy, STEPVAL, NUMOFCLUST, MINDIM, xmin, ymin, zmin, \
-  outfname=""):
+  outfname="", minimaselection=0.0):
 
   xsets = set()
   ysets = set()
@@ -105,11 +105,11 @@ def get_centroids(energy, STEPVAL, NUMOFCLUST, MINDIM, xmin, ymin, zmin, \
   nz = energy.shape[2]
 
   for iz in range(0, nz):
-    z = zmin + float(iz) * (1.0/STEPVAL)
+    z = zmin + float(iz) * (STEPVAL)
     for ix in range(0, nx):
-      x = xmin + float(ix) * (1.0/STEPVAL)
+      x = xmin + float(ix) * (STEPVAL)
       for iy in range(0, ny):
-        y = ymin + float(iy) * (1.0/STEPVAL)
+        y = ymin + float(iy) * (STEPVAL)
 
         xsets.add(x)
         ysets.add(y)
@@ -159,12 +159,9 @@ def get_centroids(energy, STEPVAL, NUMOFCLUST, MINDIM, xmin, ymin, zmin, \
 
   mineval = []
   sortedeval = numpy.sort(evalset)
-  print(sortedeval)
 
   for i in range(0, min(MINDIM, len(sortedeval))):
     mineval.append(sortedeval[i])
-  print(mineval)
-
 
   print("Min values selected: ")
   for i, m in enumerate(mineval):
@@ -188,64 +185,92 @@ def get_centroids(energy, STEPVAL, NUMOFCLUST, MINDIM, xmin, ymin, zmin, \
   zmin = []
   minvals = []
 
-  for ix in range(dimcube,nx-dimcube):
-    for iy in range(dimcube,ny-dimcube):
-      for iz in range(dimcube,nz-dimcube):
+  if minimaselection != 0.0:
+    for ix in range(nx):
+      for iy in range(ny):
+        for iz in range(nz):
+    
+          x = botx + ix * dx
+          y = boty + iy * dy
+          z = botz + iz * dz
+    
+          eref = energy[ix, iy, iz]
 
-        x = botx + ix * dx
-        y = boty + iy * dy
-        z = botz + iz * dz
-
-        eref = energy[ix, iy, iz]
-
-        notminima = False
-        
-        if (eref in mineval):
-
-          for ix_near in range(-dimcube,dimcube):
-            for iy_near in range(-dimcube,dimcube):
-              for iz_near in range(-dimcube,dimcube):
-          
-                if not ((ix_near == 0) and (iy_near == 0) and (iz_near == 0)):
-          
-                  x_near = x + (ix_near * dx)
-                  y_near = y + (iy_near * dy)
-                  z_near = z + (iz_near * dz)
-          
-                  xstr = "{:.3f}".format(x)
-                  ystr = "{:.3f}".format(y)
-                  zstr = "{:.3f}".format(z)
-                  xyzstr = xstr+'_'+ystr+'_'+zstr
-                  ixyz = xyzval_to_ixyz_map[xyzstr].split("_")
-                  near_ix = int(ixyz[0])
-                  near_iy = int(ixyz[1])
-                  near_iz = int(ixyz[2])
-
-                  e = energy[near_ix, near_iy, near_iz]
-                  
-                  if (e < eref):
-                    notminima = True
-          
-          if (notminima):
-            min_energy[ix, iy, iz] = 0.0
-          else:
+          if eref <= minimaselection:
             #print "{:.3f}".format(x), " {:.3f}".format(y), " {:.3f}".format(z), " {:.3f}".format(eref)
             min_energy[ix, iy, iz] = eref
             minvals.append(eref)
             xmin.append(x)
             ymin.append(y)
             zmin.append(z)
+          else:
+            min_energy[ix, iy, iz] = 0.0
+  elif minimaselection == 0.0:
+    for ix in range(dimcube,nx-dimcube):
+      for iy in range(dimcube,ny-dimcube):
+        for iz in range(dimcube,nz-dimcube):
+    
+          x = botx + ix * dx
+          y = boty + iy * dy
+          z = botz + iz * dz
+    
+          eref = energy[ix, iy, iz]
+    
+          notminima = False
+          
+          if (eref in mineval):
+    
+            for ix_near in range(-dimcube,dimcube):
+              for iy_near in range(-dimcube,dimcube):
+                for iz_near in range(-dimcube,dimcube):
+            
+                  if not ((ix_near == 0) and (iy_near == 0) and (iz_near == 0)):
+            
+                    x_near = x + (ix_near * dx)
+                    y_near = y + (iy_near * dy)
+                    z_near = z + (iz_near * dz)
+            
+                    xstr = "{:.3f}".format(x)
+                    ystr = "{:.3f}".format(y)
+                    zstr = "{:.3f}".format(z)
+                    xyzstr = xstr+'_'+ystr+'_'+zstr
+                    ixyz = xyzval_to_ixyz_map[xyzstr].split("_")
+                    near_ix = int(ixyz[0])
+                    near_iy = int(ixyz[1])
+                    near_iz = int(ixyz[2])
+    
+                    e = energy[near_ix, near_iy, near_iz]
+                    
+                    if (e < eref):
+                      notminima = True
+            
+            if (notminima):
+              min_energy[ix, iy, iz] = 0.0
+            else:
+              #print "{:.3f}".format(x), " {:.3f}".format(y), " {:.3f}".format(z), " {:.3f}".format(eref)
+              min_energy[ix, iy, iz] = eref
+              minvals.append(eref)
+              xmin.append(x)
+              ymin.append(y)
+              zmin.append(z)
 
   print("Done ")
 
   print("Start clustering ...")
+  print("Using %d minima"%len(xmin))
 
   pointstocluster = numpy.zeros((len(minvals), 3))
 
+  fp = open("minima.xyz", "a")
+  
   for i in range(0,len(minvals)):
     pointstocluster[i,0] = xmin[i]
     pointstocluster[i,1] = ymin[i]
     pointstocluster[i,2] = zmin[i]
+    fp.write("H %10.5f %10.5f %10.5f\n"%(xmin[i], \
+      ymin[i], zmin[i]))
+  
+  fp.close()
 
   kmeans = KMeans(init="random", n_clusters=NUMOFCLUST, \
     n_init=10, max_iter=300, random_state=42)
