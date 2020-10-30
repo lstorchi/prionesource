@@ -261,16 +261,16 @@ def get_centroids(energy, STEPVAL, NUMOFCLUST, MINDIM, xmin, ymin, zmin, \
 
   pointstocluster = numpy.zeros((len(minvals), 3))
 
-  fp = open("minima.xyz", "a")
+  #fp = open("minima.xyz", "a")
   
   for i in range(0,len(minvals)):
     pointstocluster[i,0] = xmin[i]
     pointstocluster[i,1] = ymin[i]
     pointstocluster[i,2] = zmin[i]
-    fp.write("H %10.5f %10.5f %10.5f\n"%(xmin[i], \
-      ymin[i], zmin[i]))
+    #fp.write("H %10.5f %10.5f %10.5f\n"%(xmin[i], \
+    #  ymin[i], zmin[i]))
   
-  fp.close()
+  #fp.close()
 
   kmeans = KMeans(init="random", n_clusters=NUMOFCLUST, \
     n_init=10, max_iter=300, random_state=42)
@@ -374,8 +374,6 @@ def get_centroids(energy, STEPVAL, NUMOFCLUST, MINDIM, xmin, ymin, zmin, \
       rmins.append(rmin) 
       rmaxs.append(rmax)
       ravgs.append(ravg)
-
-
 
   if outfname != "":
     xyzf.close()

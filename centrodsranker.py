@@ -11,7 +11,7 @@ import gridfieldcentroids
 sys.path.append("./common")
 import gridfield
 
-DUMPCENTROIDS = True
+DUMPCENTROIDS = False
 
 ###############################################################
 
@@ -145,12 +145,12 @@ if __name__ == "__main__":
             rmax2 = valuefp[j][3]
             ravg2 = valuefp[j][4]
 
-            summa = 0.0
+            summa = numpy.float64(0.0)
             isin = 0
             for idx1, c1 in enumerate(cxyz1):
                 for idx2, c2 in enumerate(cxyz2):
                     s = dist(c1, c2) * cval1[idx1] * cval2[idx2]
-                    summa += s
+                    summa += numpy.float64(s)
                     if dist(c1, c2) < (rmax1[idx1] + rmax2[idx2]):
                         isin +=  1
                     print("%10.5f"%(s))
