@@ -19,6 +19,8 @@ if __name__ == "__main__":
       required=False, default=False, action="store_true")
     parser.add_argument("--show", help="Show plot", \
       required=False, default=False, action="store_true")
+    parser.add_argument("--axis", help="Select axis to be used for the C similarity [default=x]", \
+      required=False, default="x", type=str)
     
     args = parser.parse_args()
 
@@ -41,8 +43,8 @@ if __name__ == "__main__":
         set2[dxfname] = (w, g)
     try:
       carboidxs, xrefpoints, weights, pweights = \
-        carbo.returncarbodxs(set1, set2, args.verbose)
-
+        carbo.returncarbodxs(set1, set2, args.verbose, args.axis)
+        
       stdev = carboidxs.std(0)
       meanmtx = carboidxs.mean(0)
   

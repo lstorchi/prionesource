@@ -26,7 +26,7 @@ do
       echo $mol1 " vs " $mol2  " using " $method
     
       echo "$mol1"_dx_"$method"_vs_"$mol2"_dx_"$method".png
-      python3 dxcarbosimilarity.py -f1 lista_"$mol1"_dx_"$method".txt -f2 lista_"$mol2"_dx_"$method".txt -v > "$mol1"_dx_"$method"_vs_"$mol2"_dx_"$method".out
+      python3 dxcarbosimilarity.py --axis "y" -f1 lista_"$mol1"_dx_"$method".txt -f2 lista_"$mol2"_dx_"$method".txt -v > "$mol1"_dx_"$method"_vs_"$mol2"_dx_"$method".out
       mv finalcarbo.png "$mol1"_dx_"$method"_vs_"$mol2"_dx_"$method".png
 
     done
