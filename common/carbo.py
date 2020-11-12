@@ -252,11 +252,11 @@ def returncarbodxs(set1, set2, verbose=False, axis="x"):
     aidx1 = 0
     aidx2 = 1
     aidx3 = 2
-  elif axis == "y"
+  elif axis == "y":
     aidx1 = 1
     aidx2 = 0
     aidx3 = 2
-  elif axis == "z"
+  elif axis == "z":
     aidx1 = 2
     aidx2 = 0
     aidx3 = 1
