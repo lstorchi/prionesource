@@ -239,9 +239,7 @@ def mol2atomextractor (file=None, readresname= False):
 def returncarbodxs(set1, set2, verbose=False, axis="x"):
 
   g = next(iter(set1.values()))
-  xrefpoints = numpy.zeros(g[1].grid.shape[0])
-  carboidxs = numpy.zeros((len(set1)*len(set2), g[1].grid.shape[0]))
-
+ 
   generalidx = 0
 
   aidx1 = 0
@@ -260,6 +258,9 @@ def returncarbodxs(set1, set2, verbose=False, axis="x"):
     aidx1 = 2
     aidx2 = 0
     aidx3 = 1
+
+  xrefpoints = numpy.zeros(g[1].grid.shape[aidx1])
+  carboidxs = numpy.zeros((len(set1)*len(set2), g[1].grid.shape[aidx1]))
 
   for v1 in set1:
     for v2 in set2:
