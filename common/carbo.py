@@ -236,13 +236,30 @@ def mol2atomextractor (file=None, readresname= False):
 
 ###############################################################
 
-def returncarbodxs(set1, set2, verbose=False):
+def returncarbodxs(set1, set2, verbose=False, axis="x"):
 
   g = next(iter(set1.values()))
   xrefpoints = numpy.zeros(g[1].grid.shape[0])
   carboidxs = numpy.zeros((len(set1)*len(set2), g[1].grid.shape[0]))
 
   generalidx = 0
+
+  aidx1 = 0
+  aidx2 = 1
+  aidx3 = 2
+
+  if axis == "x":
+    aidx1 = 0
+    aidx2 = 1
+    aidx3 = 2
+  elif axis == "y"
+    aidx1 = 1
+    aidx2 = 0
+    aidx3 = 2
+  elif axis == "z"
+    aidx1 = 2
+    aidx2 = 0
+    aidx3 = 1
 
   for v1 in set1:
     for v2 in set2:
@@ -257,17 +274,17 @@ def returncarbodxs(set1, set2, verbose=False):
       except TypeError as te:
         raise Exception(v1 + " and " + v2 + " are not compatible ")
 
-      for i in range(g1.grid.shape[0]):
-        x = g1.origin[0] + i*g1.delta[0]
+      for i in range(g1.grid.shape[aidx1]):
+        x = g1.origin[aidx1] + i*g1.delta[aidx1]
 
         num = 0.0
         denum1 = 0.0 
         denum2 = 0.0
         
-        for j in range(g1.grid.shape[1]):
-          y = g1.origin[1] + j*g1.delta[2]
-          for k in range(g1.grid.shape[2]):
-            z = g1.origin[2] + k*g1.delta[2]
+        for j in range(g1.grid.shape[aidx2]):
+          y = g1.origin[aidx2] + j*g1.delta[aidx2]
+          for k in range(g1.grid.shape[aidx3]):
+            z = g1.origin[aidx3] + k*g1.delta[aidx3]
 
             num = num + g1.grid[i, j, k]*g2.grid[i, j, k]
             denum1 = denum1 + g1.grid[i, j, k]*g1.grid[i, j, k]
