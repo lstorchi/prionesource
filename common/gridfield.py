@@ -146,7 +146,7 @@ def energytofile (energy, name, botx, boty, botz, STEPVAL):
 ###############################################################################
 
 def compute_grid_avg_field (filename1, weightfile, STEPVAL, DELTAVAL, \
-        probename):
+        probename, verbose=True):
 
   # generate grid 
   xmin = float("inf")
@@ -268,8 +268,9 @@ def compute_grid_avg_field (filename1, weightfile, STEPVAL, DELTAVAL, \
   
   #zmin = -29.000
   #zmax =  30.000
-  
-  print("Grid will be used: ", xmin, ymin, zmin, xmax, ymax, zmax)
+
+  if verbose:  
+    print("Grid will be used: ", xmin, ymin, zmin, xmax, ymax, zmax)
   
   weights1 = []
   weightsfp1 = open(weightfile)
@@ -325,13 +326,15 @@ def compute_grid_avg_field (filename1, weightfile, STEPVAL, DELTAVAL, \
   
     # read kont file
     energy1 = readkontfile(kontname)
-  
-    print("nx: ", energy1.shape[0], " ny: ", energy1.shape[1], \
-        " nz: ", energy1.shape[2])
+
+    if verbose:  
+      print("nx: ", energy1.shape[0], " ny: ", energy1.shape[1], \
+         " nz: ", energy1.shape[2])
   
     ifextrm ("./"+kontname)
-  
-    print("Dealing with: ", kontname, " w: ", weights1[globalindex])
+
+    if verbose:  
+      print("Dealing with: ", kontname, " w: ", weights1[globalindex])
   
     if  globalindex == 0:
       nx = energy1.shape[0]
@@ -439,7 +442,7 @@ def read_kontfile (kontname):
 ###############################################################################
 
 def compute_grid_mean_field (filename, step, delta, \
-        probename, mol2pdb=True):
+        probename, mol2pdb=True, verbose=True):
 
   # generate grid 
   xmin = float("inf")
@@ -503,7 +506,8 @@ def compute_grid_mean_field (filename, step, delta, \
   zmin = zmin - delta
   zmax = zmax + delta
 
-  print("Grid will be used: ", xmin, ymin, zmin, xmax, ymax, zmax)
+  if verbose:
+    print("Grid will be used: ", xmin, ymin, zmin, xmax, ymax, zmax)
   
   if (len(mollist) != len(weights)):
     print("Dimension error ", len(mollist) , " vs " , \
@@ -564,12 +568,14 @@ def compute_grid_mean_field (filename, step, delta, \
     # read kont file
     lenergy = readkontfile(kontname)
   
-    print("nx: ", lenergy.shape[0], " ny: ", lenergy.shape[1], \
+    if verbose:
+      print("nx: ", lenergy.shape[0], " ny: ", lenergy.shape[1], \
         " nz: ", lenergy.shape[2])
   
     ifextrm ("./"+kontname)
   
-    print("Dealing with: ", kontname, " w: ", weights[globalindex])
+    if verbose:
+      print("Dealing with: ", kontname, " w: ", weights[globalindex])
   
     if  globalindex == 0:
       nx = lenergy.shape[0]

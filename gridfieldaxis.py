@@ -172,15 +172,15 @@ def get_points(energy, STEPVAL, xmin, ymin, zmin, axis="x", \
   topy = max(list(ysets))
   topz = max(list(zsets))
 
-  print("  Box ")
-  print("           x: {:.3f}".format(botx), " {:.3f}".format(topx))
-  print("           y: {:.3f}".format(boty), " {:.3f}".format(topy))
-  print("           z: {:.3f}".format(botz), " {:.3f}".format(topz))
+  #print("  Box ")
+  #print("           x: {:.3f}".format(botx), " {:.3f}".format(topx))
+  #print("           y: {:.3f}".format(boty), " {:.3f}".format(topy))
+  #print("           z: {:.3f}".format(botz), " {:.3f}".format(topz))
 
-  print("  field sizes: ", len(xsets), len(ysets), len(zsets))
-  print("           dx: {:.3f}".format(dx))
-  print("           dy: {:.3f}".format(dy))
-  print("           dz: {:.3f}".format(dz))
+  #print("  field sizes: ", len(xsets), len(ysets), len(zsets))
+  #print("           dx: {:.3f}".format(dx))
+  #print("           dy: {:.3f}".format(dy))
+  #print("           dz: {:.3f}".format(dz))
 
   if axis == "x":
     for ix in range(0, nx):
@@ -230,7 +230,7 @@ def get_points(energy, STEPVAL, xmin, ymin, zmin, axis="x", \
       if count > 0:
         countd = count
 
-      print("Y: %10.5f "%(x), " %5d %5d %10.5f %10.5f"%( \
+      print("Y: %10.5f "%(y), " %5d %5d %10.5f %10.5f"%( \
         countlower, count, sume, sume/float(countd)))
   elif axis == "z":
     for iz in range(0, nz):
@@ -255,12 +255,8 @@ def get_points(energy, STEPVAL, xmin, ymin, zmin, axis="x", \
       if count > 0:
         countd = count
 
-      print("Z: %10.5f "%(x), " %5d %5d %10.5f %10.5f"%( \
+      print("Z: %10.5f "%(z), " %5d %5d %10.5f %10.5f"%( \
         countlower, count, sume, sume/float(countd)))
-
-
-
-
 
 ###############################################################################
 
@@ -300,16 +296,16 @@ if __name__ == "__main__":
       print("we need fixpdb executable in the current dir")
       exit(1)
 
-  print("Computing grid fields ...")
+  #print("Computing grid fields ...")
 
   energy, xmin, ymin, zmin = gridfield.compute_grid_mean_field (args.file, \
-          STEPVAL, DELTAVAL, probe)
+          STEPVAL, DELTAVAL, probe, True, False)
 
-  gridfield.energytofile (energy, args.output, xmin, ymin, zmin, STEPVAL)
+  #gridfield.energytofile (energy, args.output, xmin, ymin, zmin, STEPVAL)
 
   minimaselection = -1.0
 
   get_points(energy, STEPVAL, xmin, ymin, zmin, args.axis, \
     minimaselection)
 
-  print("Done ")
+  #print("Done ")
