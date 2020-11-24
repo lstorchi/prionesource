@@ -159,6 +159,8 @@ def get_points(energy, STEPVAL, xmin, ymin, zmin, axis="x", \
     for ix in range(0, nx):
       x = xmin + float(ix) * (STEPVAL)
       count = 0
+      sume = 0.0
+      countlower = 0
 
       for iz in range(0, nz):
         z = zmin + float(iz) * (STEPVAL)
@@ -179,8 +181,17 @@ def get_points(energy, STEPVAL, xmin, ymin, zmin, axis="x", \
 
           if (energy[ix, iy, iz] < 0.0):
             count += 1
-      
-      print("X: %10.5f "%(x), " %5d "%(count))
+          if (energy[ix, iy, iz] < minimaselection):
+            countlower += 1
+
+          sume += energy[ix, iy, iz] 
+
+      countd = 1
+      if count > 0:
+        countd = count
+
+      print("X: %10.5f "%(x), " %5d %5d %10.5f %10.5f"%( \
+        countlower, count, sume, sume/float(countd)))
 
 
 ###############################################################################
@@ -228,7 +239,9 @@ if __name__ == "__main__":
 
   gridfield.energytofile (energy, args.output, xmin, ymin, zmin, STEPVAL)
 
+  minimaselection = -1.0
+
   get_points(energy, STEPVAL, xmin, ymin, zmin, args.axis, \
-    minimaselection=0.0)
+    minimaselection)
 
   print("Done ")
