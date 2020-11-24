@@ -155,6 +155,34 @@ def get_points(energy, STEPVAL, xmin, ymin, zmin, axis="x", \
   print("           dy: {:.3f}".format(dy))
   print("           dz: {:.3f}".format(dz))
 
+  if axis == "x":
+    for ix in range(0, nx):
+      x = xmin + float(ix) * (STEPVAL)
+      count = 0
+
+      for iz in range(0, nz):
+        z = zmin + float(iz) * (STEPVAL)
+        for iy in range(0, ny):
+          y = ymin + float(iy) * (STEPVAL)
+
+          ixyzstr = str(ix)+'_'+str(iy)+'_'+str(iz)
+          xstr = "{:.3f}".format(x)
+          ystr = "{:.3f}".format(y)
+          zstr = "{:.3f}".format(z)
+          xyzstr = xstr+'_'+ystr+'_'+zstr
+          
+          ijk = xyzval_to_ixyz_map[xyzstr].split("_")
+
+          ix = int(ijk[0])
+          iy = int(ijk[1])
+          iz = int(ijk[2])
+
+          if (energy[ix, iy, iz] < 0.0):
+            count += 1
+      
+      print("X: %10.5f "%(x), " %5d "%(count))
+
+
 ###############################################################################
 
 if __name__ == "__main__":
