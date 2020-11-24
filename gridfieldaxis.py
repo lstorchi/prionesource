@@ -81,6 +81,33 @@ def write_to_cube (mol1, mol1field, fname, xnstep, ynstep, znstep,\
 
   opf.close()
 
+###############################################################################
+
+def return_metric (ix, x, iy, y, iz, z, xyzval_to_ixyz_map, \
+  energy, minimaselection):
+
+  count = countlower = 0
+  e = 0.0
+
+  xstr = "{:.3f}".format(x)
+  ystr = "{:.3f}".format(y)
+  zstr = "{:.3f}".format(z)
+  xyzstr = xstr+'_'+ystr+'_'+zstr
+  
+  ijk = xyzval_to_ixyz_map[xyzstr].split("_")
+  
+  ix = int(ijk[0])
+  iy = int(ijk[1])
+  iz = int(ijk[2])
+  
+  if (energy[ix, iy, iz] < 0.0):
+    count = 1
+  if (energy[ix, iy, iz] < minimaselection):
+    countlower = 1
+  
+  e = energy[ix, iy, iz] 
+
+  return count, countlower, e
 
 ###############################################################################
 
@@ -167,24 +194,12 @@ def get_points(energy, STEPVAL, xmin, ymin, zmin, axis="x", \
         for iy in range(0, ny):
           y = ymin + float(iy) * (STEPVAL)
 
-          ixyzstr = str(ix)+'_'+str(iy)+'_'+str(iz)
-          xstr = "{:.3f}".format(x)
-          ystr = "{:.3f}".format(y)
-          zstr = "{:.3f}".format(z)
-          xyzstr = xstr+'_'+ystr+'_'+zstr
+          c, cl, e = return_metric (ix, x, iy, y, iz, z, \
+            xyzval_to_ixyz_map, energy, minimaselection)
           
-          ijk = xyzval_to_ixyz_map[xyzstr].split("_")
-
-          ix = int(ijk[0])
-          iy = int(ijk[1])
-          iz = int(ijk[2])
-
-          if (energy[ix, iy, iz] < 0.0):
-            count += 1
-          if (energy[ix, iy, iz] < minimaselection):
-            countlower += 1
-
-          sume += energy[ix, iy, iz] 
+          count += c
+          countlower += cl
+          sume += e
 
       countd = 1
       if count > 0:
@@ -192,6 +207,59 @@ def get_points(energy, STEPVAL, xmin, ymin, zmin, axis="x", \
 
       print("X: %10.5f "%(x), " %5d %5d %10.5f %10.5f"%( \
         countlower, count, sume, sume/float(countd)))
+  elif axis == "y":
+    for iy in range(0, ny):
+      y = ymin + float(iy) * (STEPVAL)
+      count = 0
+      sume = 0.0
+      countlower = 0
+
+      for iz in range(0, nz):
+        z = zmin + float(iz) * (STEPVAL)
+        for ix in range(0, nx):
+          x = xmin + float(ix) * (STEPVAL)
+
+          c, cl, e = return_metric (ix, x, iy, y, iz, z, \
+            xyzval_to_ixyz_map, energy, minimaselection)
+          
+          count += c
+          countlower += cl
+          sume += e
+
+      countd = 1
+      if count > 0:
+        countd = count
+
+      print("Y: %10.5f "%(x), " %5d %5d %10.5f %10.5f"%( \
+        countlower, count, sume, sume/float(countd)))
+  elif axis == "z":
+    for iz in range(0, nz):
+      z = zmin + float(iz) * (STEPVAL)
+      count = 0
+      sume = 0.0
+      countlower = 0
+
+      for iy in range(0, ny):
+        y = ymin + float(iy) * (STEPVAL)
+        for ix in range(0, nx):
+          x = xmin + float(ix) * (STEPVAL)
+
+          c, cl, e = return_metric (ix, x, iy, y, iz, z, \
+            xyzval_to_ixyz_map, energy, minimaselection)
+          
+          count += c
+          countlower += cl
+          sume += e
+
+      countd = 1
+      if count > 0:
+        countd = count
+
+      print("Z: %10.5f "%(x), " %5d %5d %10.5f %10.5f"%( \
+        countlower, count, sume, sume/float(countd)))
+
+
+
 
 
 ###############################################################################
