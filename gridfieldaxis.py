@@ -263,7 +263,7 @@ def get_points(energy, STEPVAL, xmin, ymin, zmin, axis="x", \
 if __name__ == "__main__":
 
   probe = "DRY"
-  STEPVAL = 2.0
+  STEPVAL = 1.0
   DELTAVAL = 10.0
   axis = "x"
 
