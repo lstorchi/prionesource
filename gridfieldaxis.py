@@ -205,7 +205,7 @@ def get_points(energy, STEPVAL, xmin, ymin, zmin, axis="x", \
           count += c
           countlower += cl
           sume += e
-          cound += cd
+          countd += cd
 
       if countd == 0:
         countd = 1
