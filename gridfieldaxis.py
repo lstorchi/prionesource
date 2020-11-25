@@ -86,6 +86,8 @@ def write_to_cube (mol1, mol1field, fname, xnstep, ynstep, znstep,\
 def return_metric (ix, x, iy, y, iz, z, xyzval_to_ixyz_map, \
   energy, minimaselection):
 
+
+  total = 0
   count = countlower = 0
   e = 0.0
 
