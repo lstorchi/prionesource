@@ -507,13 +507,13 @@ def compute_grid_mean_field (filename, step, delta, \
   zmax = zmax + delta
 
   # to set custom ranges
-  #xmin = -42.0
-  #ymin = -28.0
-  #zmin = -42.0
+  xmin = -42.0
+  ymin = -28.0
+  zmin = -42.0
 
-  #xmax = 42.0
-  #ymax = 39.0
-  #zmax = 42.
+  xmax = 42.0
+  ymax = 39.0
+  zmax = 42.
 
   if verbose:
     print("Grid will be used: ", xmin, ymin, zmin, xmax, ymax, zmax)

@@ -100,14 +100,16 @@ def return_metric (ix, x, iy, y, iz, z, xyzval_to_ixyz_map, \
   iy = int(ijk[1])
   iz = int(ijk[2])
   
-  if (energy[ix, iy, iz] < 0.0):
+  if (energy[ix, iy, iz] > 0.0):
     count = 1
   if (energy[ix, iy, iz] < minimaselection):
     countlower = 1
+  if (energy[ix, iy, iz] != 0.0):
+    total = 1
   
   e = energy[ix, iy, iz] 
 
-  return count, countlower, e
+  return count, countlower, e, total
 
 ###############################################################################
 
@@ -186,6 +188,7 @@ def get_points(energy, STEPVAL, xmin, ymin, zmin, axis="x", \
     for ix in range(0, nx):
       x = xmin + float(ix) * (STEPVAL)
       count = 0
+      countd = 0
       sume = 0.0
       countlower = 0
 
@@ -194,16 +197,16 @@ def get_points(energy, STEPVAL, xmin, ymin, zmin, axis="x", \
         for iy in range(0, ny):
           y = ymin + float(iy) * (STEPVAL)
 
-          c, cl, e = return_metric (ix, x, iy, y, iz, z, \
+          c, cl, e, cd = return_metric (ix, x, iy, y, iz, z, \
             xyzval_to_ixyz_map, energy, minimaselection)
           
           count += c
           countlower += cl
           sume += e
+          cound += cd
 
-      countd = 1
-      if count > 0:
-        countd = count
+      if countd == 0:
+        countd = 1
 
       print("X: %10.5f "%(x), " %5d %5d %10.5f %10.5f"%( \
         countlower, count, sume, sume/float(countd)))
@@ -211,6 +214,7 @@ def get_points(energy, STEPVAL, xmin, ymin, zmin, axis="x", \
     for iy in range(0, ny):
       y = ymin + float(iy) * (STEPVAL)
       count = 0
+      countd = 0
       sume = 0.0
       countlower = 0
 
@@ -219,16 +223,16 @@ def get_points(energy, STEPVAL, xmin, ymin, zmin, axis="x", \
         for ix in range(0, nx):
           x = xmin + float(ix) * (STEPVAL)
 
-          c, cl, e = return_metric (ix, x, iy, y, iz, z, \
+          c, cl, e, cd = return_metric (ix, x, iy, y, iz, z, \
             xyzval_to_ixyz_map, energy, minimaselection)
           
+          countd += cd
           count += c
           countlower += cl
           sume += e
 
-      countd = 1
-      if count > 0:
-        countd = count
+      if countd == 0:
+        countd = 1
 
       print("Y: %10.5f "%(y), " %5d %5d %10.5f %10.5f"%( \
         countlower, count, sume, sume/float(countd)))
@@ -236,6 +240,7 @@ def get_points(energy, STEPVAL, xmin, ymin, zmin, axis="x", \
     for iz in range(0, nz):
       z = zmin + float(iz) * (STEPVAL)
       count = 0
+      countd = 0
       sume = 0.0
       countlower = 0
 
@@ -244,17 +249,17 @@ def get_points(energy, STEPVAL, xmin, ymin, zmin, axis="x", \
         for ix in range(0, nx):
           x = xmin + float(ix) * (STEPVAL)
 
-          c, cl, e = return_metric (ix, x, iy, y, iz, z, \
+          c, cl, e, cd = return_metric (ix, x, iy, y, iz, z, \
             xyzval_to_ixyz_map, energy, minimaselection)
           
           count += c
           countlower += cl
           sume += e
+          countd += cd
 
-      countd = 1
-      if count > 0:
-        countd = count
-
+      if countd == 0:
+        countd = 1
+      
       print("Z: %10.5f "%(z), " %5d %5d %10.5f %10.5f"%( \
         countlower, count, sume, sume/float(countd)))
 
@@ -262,7 +267,7 @@ def get_points(energy, STEPVAL, xmin, ymin, zmin, axis="x", \
 
 if __name__ == "__main__":
 
-  probe = "DRY"
+  probe = "OH2"
   STEPVAL = 1.0
   DELTAVAL = 10.0
   axis = "x"
@@ -303,7 +308,7 @@ if __name__ == "__main__":
 
   #gridfield.energytofile (energy, args.output, xmin, ymin, zmin, STEPVAL)
 
-  minimaselection = -1.0
+  minimaselection = 0.0
 
   get_points(energy, STEPVAL, xmin, ymin, zmin, args.axis, \
     minimaselection)
