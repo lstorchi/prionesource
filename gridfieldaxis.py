@@ -86,9 +86,8 @@ def write_to_cube (mol1, mol1field, fname, xnstep, ynstep, znstep,\
 def return_metric (ix, x, iy, y, iz, z, xyzval_to_ixyz_map, \
   energy, minimaselection):
 
-
   total = 0
-  count = countlower = 0
+  countp = countn = countlower = 0
   e = 0.0
 
   xstr = "{:.3f}".format(x)
@@ -103,15 +102,19 @@ def return_metric (ix, x, iy, y, iz, z, xyzval_to_ixyz_map, \
   iz = int(ijk[2])
   
   if (energy[ix, iy, iz] > 0.0):
-    count = 1
+    countp = 1
+  elif (energy[ix, iy, iz] < 0.0):
+    countn = 1
+
   if (energy[ix, iy, iz] < minimaselection):
     countlower = 1
+
   if (energy[ix, iy, iz] != 0.0):
     total = 1
   
   e = energy[ix, iy, iz] 
 
-  return count, countlower, e, total
+  return countp, countn, countlower, e, total
 
 ###############################################################################
 
@@ -186,84 +189,98 @@ def get_points(energy, STEPVAL, xmin, ymin, zmin, axis="x", \
   #print("           dy: {:.3f}".format(dy))
   #print("           dz: {:.3f}".format(dz))
 
+  min1 = 0.0
+  min2 = 0.0
+  min3 = 0.0
+
+  n1 = 0
+  n2 = 0
+  n3 = 0
+
   if axis == "x":
-    for ix in range(0, nx):
-      x = xmin + float(ix) * (STEPVAL)
-      count = 0
-      countd = 0
-      sume = 0.0
-      countlower = 0
+    min1 = xmin
+    min2 = ymin
+    min3 = zmin
 
-      for iz in range(0, nz):
-        z = zmin + float(iz) * (STEPVAL)
-        for iy in range(0, ny):
-          y = ymin + float(iy) * (STEPVAL)
-
-          c, cl, e, cd = return_metric (ix, x, iy, y, iz, z, \
-            xyzval_to_ixyz_map, energy, minimaselection)
-          
-          count += c
-          countlower += cl
-          sume += e
-          countd += cd
-
-      if countd == 0:
-        countd = 1
-
-      print("X: %10.5f "%(x), " %5d %5d %10.5f %10.5f"%( \
-        countlower, count, sume, sume/float(countd)))
+    n1 = nx
+    n2 = ny
+    n3 = nz
   elif axis == "y":
-    for iy in range(0, ny):
-      y = ymin + float(iy) * (STEPVAL)
-      count = 0
-      countd = 0
-      sume = 0.0
-      countlower = 0
+    min1 = ymin
+    min2 = xmin
+    min3 = zmin
 
-      for iz in range(0, nz):
-        z = zmin + float(iz) * (STEPVAL)
-        for ix in range(0, nx):
-          x = xmin + float(ix) * (STEPVAL)
-
-          c, cl, e, cd = return_metric (ix, x, iy, y, iz, z, \
-            xyzval_to_ixyz_map, energy, minimaselection)
-          
-          countd += cd
-          count += c
-          countlower += cl
-          sume += e
-
-      if countd == 0:
-        countd = 1
-
-      print("Y: %10.5f "%(y), " %5d %5d %10.5f %10.5f"%( \
-        countlower, count, sume, sume/float(countd)))
+    n1 = ny
+    n2 = nx
+    n3 = nz
   elif axis == "z":
-    for iz in range(0, nz):
-      z = zmin + float(iz) * (STEPVAL)
-      count = 0
-      countd = 0
-      sume = 0.0
-      countlower = 0
+    min1 = zmin
+    min2 = xmin
+    min3 = ymin
 
-      for iy in range(0, ny):
-        y = ymin + float(iy) * (STEPVAL)
-        for ix in range(0, nx):
-          x = xmin + float(ix) * (STEPVAL)
+    n1 = nz
+    n2 = nx
+    n3 = ny
 
-          c, cl, e, cd = return_metric (ix, x, iy, y, iz, z, \
+  print( \
+    "Axis countlower countp>0 count<0 sume AVG(sume) sum<0 AVG(sum>0) sum<0 AVG(sum<0)")
+
+  for i in range(0, n1):
+    c1 = min1 + float(i) * (STEPVAL)
+
+    sume = 0.0
+    sumpe = 0.0
+    sumne = 0.0
+
+    countp = 0
+    countn = 0
+    countd = 0
+    countlower = 0
+
+    for j in range(0, n2):
+      c2 = min2 + float(j) * (STEPVAL)
+      for k in range(0, n3):
+        c3 = min3 + float(k) * (STEPVAL)
+
+        cp = cn = cl = cd = 0
+        e = 0.0
+
+        if axis == "x":
+          cp, cn, cl, e, cd = return_metric (i, c1, j, c2, k, c3, \
             xyzval_to_ixyz_map, energy, minimaselection)
-          
-          count += c
-          countlower += cl
-          sume += e
-          countd += cd
+        elif axis == "y":
+          cp, cn, cl, e, cd = return_metric (j, c2, i, c1, k, c3, \
+            xyzval_to_ixyz_map, energy, minimaselection)
+        elif axis == "z":
+          cp, cn, cl, e, cd = return_metric (j, c2, k, c3, i, c1, \
+            xyzval_to_ixyz_map, energy, minimaselection)
+        
+        if e > 0.0:
+          sumpe += e
+        elif e < 0.0:
+          sumne += e
 
-      if countd == 0:
-        countd = 1
-      
-      print("Z: %10.5f "%(z), " %5d %5d %10.5f %10.5f"%( \
-        countlower, count, sume, sume/float(countd)))
+        sume += e
+        countp += cp
+        countn += cn
+        countd += cd
+        countlower += cl
+
+    if countd == 0:
+      countd = 1
+    if countp == 0:
+      countp = 1
+    if countn == 0:
+      countn = 1
+
+
+    print(axis + ": %10.5f "%(c1), \
+      " %5d %5d %5d %12.5f %12.5f %12.5f %12.5f %12.5f %12.5f"%( \
+        countlower, countp, countn, \
+        sume, sume/float(countd), \
+        sumpe, sumpe/float(countp), \
+        sumne, sumne/float(countn)))
+
 
 ###############################################################################
 
@@ -310,7 +327,7 @@ if __name__ == "__main__":
 
   #gridfield.energytofile (energy, args.output, xmin, ymin, zmin, STEPVAL)
 
-  minimaselection = 0.0
+  minimaselection = -2.0
 
   get_points(energy, STEPVAL, xmin, ymin, zmin, args.axis, \
     minimaselection)
