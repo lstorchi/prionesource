@@ -223,7 +223,7 @@ def get_points(energy, STEPVAL, xmin, ymin, zmin, axis="x", \
     n3 = ny
 
   print( \
-    "Axis countlower countp>0 count<0 sume AVG(sume) sum<0 AVG(sum>0) sum<0 AVG(sum<0)")
+    "Axis , countlower , countp>0 , count<0 , sume , AVG(sume) , sum<0 , AVG(sum>0) , sum<0 , AVG(sum<0)")
 
   for i in range(0, n1):
     c1 = min1 + float(i) * (STEPVAL)
@@ -274,8 +274,8 @@ def get_points(energy, STEPVAL, xmin, ymin, zmin, axis="x", \
       countn = 1
 
 
-    print(axis + ": %10.5f "%(c1), \
-      " %5d %5d %5d %12.5f %12.5f %12.5f %12.5f %12.5f %12.5f"%( \
+    print(axis + " , %10.5f , "%(c1), \
+      " %5d , %5d , %5d , %12.5f , %12.5f , %12.5f , %12.5f , %12.5f , %12.5f"%( \
         countlower, countp, countn, \
         sume, sume/float(countd), \
         sumpe, sumpe/float(countp), \
