@@ -11,7 +11,6 @@ import gridfieldcentroids
 sys.path.append("./common")
 import gridfield
 
-DUMPCENTROIDS = False
 
 ###############################################################
 
@@ -67,6 +66,8 @@ if __name__ == "__main__":
         required=True, default=0.0, type=float)
     parser.add_argument("-k", "--savekont", help="save kont file during the computation", \
         default=False, action="store_true")
+    parser.add_argument("--dumpcentroids", help="dump also centroid in a xyz like file", \
+        default=False, action="store_true")
     args = parser.parse_args()
 
     probe = args.probe
@@ -98,7 +99,7 @@ if __name__ == "__main__":
 
     gp = None
 
-    if DUMPCENTROIDS:
+    if args.dumpcentroids:
         gp = open("centroids.xyz", "w")
         gp.write("%d\n"%(2*NUMOFCLUST))
         gp.write("\n")
@@ -113,7 +114,7 @@ if __name__ == "__main__":
         ravg = v[4]
 
         for j in range(len(centroids)):
-          if DUMPCENTROIDS:
+          if args.dumpcentroids:
             if idx == 0:
                 gp.write("H %10.5f %10.5f %10.5f\n"%(centroids[j][0], \
                   centroids[j][1], centroids[j][2]))
@@ -130,7 +131,7 @@ if __name__ == "__main__":
               "%10.5f"%ravg[j])
         print("")
 
-    if DUMPCENTROIDS:    
+    if args.dumpcentroids:    
         gp.close()
 
     for i in range(len(valuefp)):
