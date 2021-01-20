@@ -442,7 +442,7 @@ def read_kontfile (kontname):
 ###############################################################################
 
 def compute_grid_mean_field (filename, step, delta, \
-        probename, mol2pdb=True, verbose=True):
+        probename, mol2pdb=True, verbose=True, savekont=False):
 
   # generate grid 
   xmin = float("inf")
@@ -581,7 +581,11 @@ def compute_grid_mean_field (filename, step, delta, \
       print("nx: ", lenergy.shape[0], " ny: ", lenergy.shape[1], \
         " nz: ", lenergy.shape[2])
   
-    ifextrm ("./"+kontname)
+    if savekont:
+      newname = sl[0].replace(".pdb", "") + "_" + str(globalindex) + ".kont"
+      os.rename("./"+kontname, "./" + newname )
+    else:
+      ifextrm ("./"+kontname)
   
     if verbose:
       print("Dealing with: ", kontname, " w: ", weights[globalindex])

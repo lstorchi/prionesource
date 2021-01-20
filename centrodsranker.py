@@ -65,7 +65,8 @@ if __name__ == "__main__":
       str(NUMOFCLUST)+"]", required=False, default=NUMOFCLUST, type=int)
     parser.add_argument("-e","--eminilimit", help="input the emin minimun value", \
         required=True, default=0.0, type=float)
-
+    parser.add_argument("-k", "--savekont", help="save kont file during the computation", \
+        default=False, action="store_true")
     args = parser.parse_args()
 
     probe = args.probe
@@ -85,7 +86,7 @@ if __name__ == "__main__":
         f.close()
 
         energy, xmin, ymin, zmin = gridfield.compute_grid_mean_field (listaname, \
-            STEPVAL, DELTAVAL, probe, False)
+            STEPVAL, DELTAVAL, probe, False, False, args.savekont)
 
         os.remove(listaname)
 
