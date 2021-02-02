@@ -441,6 +441,60 @@ def read_kontfile (kontname):
 
 ###############################################################################
 
+def compute_grid_box (filename, delta):
+
+  # generate grid 
+  xmin = float("inf")
+  ymin = float("inf")
+  zmin = float("inf")
+  xmax = float("-inf")
+  ymax = float("-inf")
+  zmax = float("-inf")
+
+  fp = open(filename, "r")
+
+  mollist = []
+  for l in fp:
+
+    l = l.replace("\n","")
+    
+    m = carbo.pdbatomextractor("./"+l)
+
+    mollist.extend(m)
+  
+  fp.close()
+
+  for conf in mollist:
+    for a in conf:
+      x, y, z = a.coords
+      
+      if x < xmin:
+        xmin = x
+      if y < ymin:
+        ymin = y
+      if z < zmin:
+        zmin = z
+  
+      if x > xmax:
+        xmax = x
+      if y > ymax:
+        ymax = y
+      if z > zmax:
+        zmax = z
+  
+  xmin = xmin - delta
+  xmax = xmax + delta
+  
+  ymin = ymin - delta
+  ymax = ymax + delta
+  
+  zmin = zmin - delta
+  zmax = zmax + delta
+
+  return xmin, xmax, ymin, ymax, zmin, zmax
+
+###############################################################################
+
 def compute_grid_mean_field (filename, step, delta, \
         probename, mol2pdb=True, verbose=True, savekont=False):
 
