@@ -57,6 +57,10 @@ def compare (energy_coords, coords, ELIMIT, eradii):
   peratom_counter = []
   peratom_counter_multiple = []
 
+  for ai in range(len(coords)):
+    peratom_counter.append(0)
+    peratom_counter_multiple.append(0)
+
   for iy in range(energy_coords.shape[1]):
     for ix in range(energy_coords.shape[0]):
         for iz in range(energy_coords.shape[2]):
