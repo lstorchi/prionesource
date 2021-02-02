@@ -34,6 +34,9 @@ class atom:
     self.partialcharge = c
     self.resname = ""
     self.atomname = ""
+    self.id = 0
+    self.element = ""
+    self.radii = 0.0
   
   def __repr__ (self):
     line = "%6d %6s %6s %10.5f %10.5f %10.5f %8.5f %3s\n"%( \
@@ -197,8 +200,14 @@ def pdbatomextractor (file=None):
         for a in residue:
           coords = a.get_coord()
           #print(id, residue.get_resname(), a.get_name(), coords)
-          a = atom(id, a.get_name(), coords[0], coords[1], coords[2], 0.0 )
-          mol.append(a)
+          na = atom(id, a.get_name(), coords[0], coords[1], coords[2], 0.0 )
+          na.id = id
+          na.resname = residue.get_resname()
+          na.atomname = a.get_name()
+          na.element = a.element
+          #na.radii = mendeleev.element(a.element).vdw_radius
+
+          mol.append(na)
           id += 1
 
     mols.append(mol)

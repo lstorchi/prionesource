@@ -495,6 +495,71 @@ def compute_grid_box (filename, delta):
 
 ###############################################################################
 
+def compute_grid_field (filename, box, \
+        probename, step, verbose=True, savekont=False):
+
+  xmin = box[0]
+  ymin = box[2]
+  zmin = box[4]
+  xmax = box[1]
+  ymax = box[3]
+  zmax = box[5]
+
+  if verbose:
+    print("Grid will be used: ", xmin, ymin, zmin, xmax, ymax, zmax)
+  
+  toexe = "./fixpdb --remove-all-H2O --unkn-residue-to-grid-types --kout-out="+ \
+       filename[:-4]+".kout "+ filename
+  results  = subprocess.run(toexe, shell=True, check=True, \
+      stdout=subprocess.PIPE, stderr=subprocess.PIPE, \
+      universal_newlines=True)
+    
+  kontname = filename[:-4]+".kont"
+  
+  fg = open('grid.in','w')
+  fg.write("LONT togrid.lont\n")
+  fg.write("KONT "+kontname+"\n")
+  fg.write("INPT "+filename[:-4]+".kout\n")
+  fg.write("NPLA "+str(1.0/step)+"\n")
+  fg.write("TOPX "+str(xmax)+"\n")
+  fg.write("TOPY "+str(ymax)+"\n")
+  fg.write("TOPZ "+str(zmax)+"\n")
+  fg.write("BOTX "+str(xmin)+"\n")
+  fg.write("BOTY "+str(ymin)+"\n")
+  fg.write("BOTZ "+str(zmin)+"\n")
+  fg.write(probename+"\n")
+  fg.write("IEND\n")
+  fg.close()
+                                                                                                         
+  results  = subprocess.run("./grid grid.in", shell=True, check=True, \
+    stdout=subprocess.PIPE, stderr=subprocess.PIPE, \
+    universal_newlines=True)
+
+  ifextrm ("./"+filename[:-4]+".kout")
+  ifextrm ("./grid.in")
+  ifextrm ("./togrid.lont")
+  
+  # read kont file
+  energy = readkontfile(kontname)
+
+  energy, energy_coords, \
+    _ , _ , _ , _ , _ , _ , _ , _ , _ , _ , _ , _  \
+       = read_kontfile_and_coords(kontname)
+  
+  if verbose:
+    print("nx: ", energy.shape[0], " ny: ", energy.shape[1], \
+      " nz: ", energy.shape[2])
+  
+  if not savekont:
+    ifextrm ("./"+kontname)
+  
+  if verbose:
+    print("Dealing with: ", kontname)
+  
+  return energy, energy_coords
+
+###############################################################################
+
 def compute_grid_mean_field (filename, step, delta, \
         probename, mol2pdb=True, verbose=True, savekont=False):
 
@@ -673,4 +738,132 @@ def compute_grid_mean_field (filename, step, delta, \
 
 ###############################################################################
 
+def read_kontfile_and_coords (kontname):
 
+  lineamnt = bufcount(kontname)
+ 
+  dim = (lineamnt - 1)/2
+ 
+  if ((dim * 2) + 1) != lineamnt :
+    print("Maybe invalid kont file")
+    exit(1)
+ 
+  fk = open(kontname)
+ 
+  xsets = set()
+  ysets = set()
+  zsets = set()
+  switchtofieldm = False
+
+  energy = numpy.empty([1,1,1], float)
+ 
+  nx = ny = nz = 0
+  ix = iy = iz = 0
+  for l in fk:
+
+    if "Probe:" in l:
+      switchtofieldm = True 
+      nx = len(xsets)
+      ny = len(ysets)
+      nz = len(zsets)
+      energy = numpy.arange(nx*ny*nz, dtype=float).reshape(nx, ny, nz)
+    
+    else:
+      if switchtofieldm:
+        p = re.compile(r'\s+')
+        line = p.sub(' ', l)
+        line = line.lstrip()
+        line = line.rstrip()
+    
+        e = float(line)
+        energy[ix, iy, iz] = e
+        #print ix, iy, iz, e
+    
+        # seguo la logica con cui sono scritti i kont ascii senza fare deduzioni
+        # ovviamente va migliorato
+        iy = iy + 1
+        if (iy == ny):
+          iy = 0
+          ix = ix + 1
+        
+        if (ix == nx):
+          ix = 0
+          iy = 0
+          iz = iz + 1
+    
+        if (iz == nz):
+          ix = 0
+          iy = 0
+          iz = 0
+    
+      else:
+        p = re.compile(r'\s+')
+        line = p.sub(' ', l)
+        line = line.lstrip()
+        line = line.rstrip()
+        n = ""
+        x = ""
+        y = ""
+        z = ""
+
+        if len(line.split(" ")) < 4:
+            n = l[:7]
+            x = l[8:16]
+            y = l[17:24]
+            z = l[25:]
+        else:
+            n, x, y, z = line.split(" ")
+    
+        xsets.add(float(x))
+        ysets.add(float(y))
+        zsets.add(float(z))
+ 
+  fk.close()
+
+  dx = sorted(xsets)[1] - sorted(xsets)[0]
+  dy = sorted(ysets)[1] - sorted(ysets)[0]
+  dz = sorted(zsets)[1] - sorted(zsets)[0]
+ 
+  botx = min(list(xsets))
+  boty = min(list(ysets))
+  botz = min(list(zsets))
+ 
+  topx = max(list(xsets))
+  topy = max(list(ysets))
+  topz = max(list(zsets))
+
+  fk = open(kontname)
+ 
+  coords = numpy.empty([nx,ny,nz], dtype=object)
+ 
+  for iz in range(nz):
+      for ix in range(nx):
+          for iy in range(ny):
+              l = fk.readline()
+              p = re.compile(r'\s+')
+              line = p.sub(' ', l)
+              line = line.lstrip()
+              line = line.rstrip()
+
+              n = ""
+              x = ""
+              y = ""
+              z = ""
+
+              if len(line.split(" ")) < 4:
+                  n = l[:7]
+                  x = l[8:16]
+                  y = l[17:24]
+                  z = l[25:]
+              else:
+                  n, x, y, z = line.split(" ")
+
+              coords[ix, iy, iz] = (float(x), float(y), float(z), int(n))
+
+  fk.close()
+ 
+ 
+  return energy, coords, \
+          botx, boty, botz, topx, topy, topz, dx, dy, dz, nx, ny, nz
+
+###############################################################################

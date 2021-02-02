@@ -4,17 +4,22 @@ import uuid
 import math
 import numpy
 import argparse
+import mendeleev
 import subprocess
 
 import gridfieldcentroids
 
 sys.path.append("./common")
 import gridfield
+import carbo
+
 
 
 ###############################################################
 
 def split_PDBfile_by_chains(filename, chainlist) :
+
+    chainsfile = []
 
     for c in chainlist:
         toexe = "pdb_selchain -" + c + " " + filename, 
@@ -23,9 +28,14 @@ def split_PDBfile_by_chains(filename, chainlist) :
             universal_newlines=True)
 
         basicname = filename[:-4]
-        f = open(basicname + "_"+c+".pdb", "w")
+        cname = basicname + "_"+c+".pdb"
+        f = open(cname, "w")
         f.write(str(results.stdout))
         f.close()
+        
+        chainsfile.append(cname)
+
+    return chainsfile
 
 ###############################################################
 
@@ -34,6 +44,103 @@ def dist (c1, c2):
     d2 = (c1[0]-c2[0])**2 + (c1[1]-c2[1])**2 + (c1[2]-c2[2])**2  
 
     return math.sqrt(d2)
+
+
+###############################################################
+
+def compare (energy_coords, coords, ELIMIT, eradii):
+
+  VDW = 1.0
+
+  counter = 0
+  counter_multiple = 0
+  peratom_counter = []
+  peratom_counter_multiple = []
+
+  for iy in range(energy_coords.shape[1]):
+    for ix in range(energy_coords.shape[0]):
+        for iz in range(energy_coords.shape[2]):
+            x, y, z, n = energy_coords[ix, iy, iz] 
+            e = energy[ix, iy, iz]
+            partialconter = 0
+            distfromatom = []
+            isnearatom = []
+
+            for ai in range(len(coords)):
+                ax = coords[ai].coords[0]
+                ay = coords[ai].coords[1]
+                az = coords[ai].coords[2]
+
+                dist = (ax-x)**2 + (ay-y)**2 + (az-z)**2 
+                distfromatom.append(dist)
+                isnearatom.append(0)
+
+                #radii = mendeleev.element(coords[ai].element).vdw_radius
+                radii = eradii[coords[ai].element]
+
+                if dist < VDW*radii and e <= ELIMIT:
+                    partialconter += 1
+                    isnearatom[ai] = 1
+                    peratom_counter_multiple[ai] += 1
+
+            counter_multiple += partialconter
+
+            if partialconter > 1:
+                #print partialconter
+                partialconter = 1
+
+                mindistai = -1
+                mindist = 0.0
+                for ai in range(len(coords)):
+                    if isnearatom[ai] != 0:
+                        if mindistai < 0:
+                            mindist = distfromatom[ai]
+                            mindistai = ai
+                        else:
+                            if distfromatom[ai] < mindist:
+                                mindist = distfromatom[ai]
+                                mindistai = ai
+
+                if mindistai >= 0:
+                    peratom_counter[mindistai] += 1
+                else:
+                    print("Error")
+                    exit(1)
+
+            elif partialconter  == 1:
+                for ai in range(len(coords)):
+                    if isnearatom[ai] != 0:
+                        peratom_counter[ai] += 1
+
+            counter += partialconter
+
+###############################################################
+
+def get_comp_values(first, energy1, energycoord1, \
+    second, energy2, energycoord2, ELIMIT):
+
+    mols1 = carbo.pdbatomextractor (first)
+    mols2 = carbo.pdbatomextractor (second)
+
+    if len(mols1) == 1 and len(mols2) == 1:
+        coords1 = mols1[0]
+        coords2 = mols2[0]
+
+        eradii = {}
+
+        print("Getting elements radii")
+        for a in coords1:
+            if a.element not in eradii:
+                eradii[a.element] = mendeleev.element(a.element).vdw_radius
+        for a in coords2:
+            if a.element not in eradii:
+                eradii[a.element] = mendeleev.element(a.element).vdw_radius
+        print("Done")
+
+        compare (energycoord1, coords2, ELIMIT, eradii)
+        compare (energycoord2, coords1, ELIMIT, eradii)
+    else:
+        print("Moltiple models in PDB ?")
 
 ###############################################################
 
@@ -45,6 +152,7 @@ if __name__ == "__main__":
     DELTAVAL = 10.0
     MINDIM = 30
     NUMOFCLUST = 4
+    verbose = True
 
     parser = argparse.ArgumentParser()
 
@@ -78,85 +186,40 @@ if __name__ == "__main__":
     
     fp = open(args.file, "r")
 
+    namestofields = {}
+    chainslist = []
+
     for filename in fp:
         chainlist = ["A", "B"]
         filename = filename.replace("\n", "")
-        split_PDBfile_by_chains (filename, chainlist)
+        chainsfile = split_PDBfile_by_chains (filename, chainlist)
 
-    exit(1)
+        chainslist.append(chainsfile)
 
-    valuefp = []
+        for cname in chainsfile:
+            energy, energy_coords = gridfield.compute_grid_field (cname, \
+                (xmin, xmax, ymin, ymax, zmin, zmax),
+                args.probe, STEPVAL, verbose)
 
-    for c in chainlist:
-        f = open(listaname, "w")
-        f.write(c + ".pdb 1.0\n")
-        f.close()
+            namestofields[cname] = (energy, energy_coords)
+            
 
-        energy, xmin, ymin, zmin = gridfield.compute_grid_mean_field (listaname, \
-            STEPVAL, DELTAVAL, probe, False, False, args.savekont)
+    for pair in chainslist:
+        first = pair[0]
+        second = pair[1]
 
-        os.remove(listaname)
+        print(first, " VS ", second)
 
-        os.remove(c+".pdb")
+        get_comp_values(first, namestofields[first][0], namestofields[first][1], \
+            second, namestofields[second][0], namestofields[second][1], args.eminilimit)
 
-    gp = None
+        if os.path.isfile(first):
+            os.remove(first)
 
-    if args.dumpcentroids:
-        gp = open("centroids.xyz", "w")
-        gp.write("%d\n"%(2*NUMOFCLUST))
-        gp.write("\n")
+        if os.path.isfile(second):
+            os.remove(second)
 
-    print("Centroids")
-    print("X          Y          Z          EMIN       RMIN       RMAX       RAVG")
-    for idx, v in enumerate(valuefp):
-        centroids = v[0]
-        centroidvals = v[1]
-        rmin = v[2]
-        rmax = v[3]
-        ravg = v[4]
 
-        for j in range(len(centroids)):
-          if args.dumpcentroids:
-            if idx == 0:
-                gp.write("H %10.5f %10.5f %10.5f\n"%(centroids[j][0], \
-                  centroids[j][1], centroids[j][2]))
-            else:
-                gp.write("O %10.5f %10.5f %10.5f\n"%(centroids[j][0], \
-                   centroids[j][1], centroids[j][2]))
-         
-          print("CENTVAL %4d %10.5f"%(idx, centroids[j][0]), \
-              "%10.5f"%centroids[j][1], \
-              "%10.5f"%centroids[j][2], \
-              "%10.5f"%centroidvals[j], \
-              "%10.5f"%rmin[j], \
-              "%10.5f"%rmax[j], \
-              "%10.5f"%ravg[j])
-        print("")
-
-    if args.dumpcentroids:    
-        gp.close()
-
-    for i in range(len(valuefp)):
-        cxyz1 = valuefp[i][0]
-        cval1 = valuefp[i][1]
-        rmin1 = valuefp[i][2]
-        rmax1 = valuefp[i][3]
-        ravg1 = valuefp[i][4]
-        for j in range(i+1, len(valuefp)):
-            cxyz2 = valuefp[j][0]
-            cval2 = valuefp[j][1]
-            rmin2 = valuefp[j][2]
-            rmax2 = valuefp[j][3]
-            ravg2 = valuefp[j][4]
-
-            summa = numpy.float64(0.0)
-            isin = 0
-            for idx1, c1 in enumerate(cxyz1):
-                for idx2, c2 in enumerate(cxyz2):
-                    s = dist(c1, c2) * cval1[idx1] * cval2[idx2]
-                    summa += numpy.float64(s)
-                    if dist(c1, c2) < (rmax1[idx1] + rmax2[idx2]):
-                        isin +=  1
-                    print("%10.5f"%(s))
-
-            print ("Pair %3d %3d has Summa %10.5f  InDist %4d "%(i, j, summa, isin))
+        
+            
+        
