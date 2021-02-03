@@ -117,7 +117,7 @@ def compare (energy_coords, coords, ELIMIT, eradii):
  
             counter += partialconter
 
-  print ("     ATOMNAME , RESIDUENAME , ATOMINDEX , " + \ 
+  print ("     ATOMNAME , RESIDUENAME , ATOMINDEX , " + \
     "RESIDUEID , POINTINATOM , TOTALENERGY , MultiPOINTINATOM , " + \
         "MultiTOTALENERGY")
   for ai in range(len(coords)):
