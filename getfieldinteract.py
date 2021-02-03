@@ -13,8 +13,6 @@ sys.path.append("./common")
 import gridfield
 import carbo
 
-
-
 ###############################################################
 
 def split_PDBfile_by_chains(filename, chainlist) :
@@ -67,7 +65,7 @@ def compare (energy_coords, coords, ELIMIT, eradii):
     peratom_counter_multiple_energy.append(0.0)
 
   for iy in range(energy_coords.shape[1]):
-    print("%5d of %5d"%(iy, energy_coords.shape[1]))
+    print("%5d of %5d"%(iy, energy_coords.shape[1]), flush=True)
     for ix in range(energy_coords.shape[0]):
         for iz in range(energy_coords.shape[2]):
             x, y, z, n = energy_coords[ix, iy, iz] 
@@ -119,11 +117,14 @@ def compare (energy_coords, coords, ELIMIT, eradii):
  
             counter += partialconter
 
+  print ("     ATOMNAME , RESIDUENAME , ATOMINDEX , " + \ 
+    "RESIDUEID , POINTINATOM , TOTALENERGY , MultiPOINTINATOM , " + \
+        "MultiTOTALENERGY")
   for ai in range(len(coords)):
       if peratom_counter[ai] != 0 or \
           peratom_counter_multiple[ai] != 0:
 
-              print ("ATOM %5s %5s %8d %5d %5d %10.5f %5d %10.5f"%(
+              print ("ATOM %5s , %5s , %8d , %5d , %5d , %10.5f , %5d , %10.5f"%(
                   coords[ai].atomname, \
                   coords[ai].resname , \
                   coords[ai].id , \
@@ -131,7 +132,7 @@ def compare (energy_coords, coords, ELIMIT, eradii):
                   peratom_counter[ai], \
                   peratom_counter_energy[ai], \
                   peratom_counter_multiple[ai],
-                  peratom_counter_multiple_energy[ai]))
+                  peratom_counter_multiple_energy[ai]),flush=True )
 
 ###############################################################
 
@@ -156,7 +157,9 @@ def get_comp_values(first, energy1, energycoord1, \
                 eradii[a.element] = mendeleev.element(a.element).vdw_radius/100.0
         print("Done")
 
+        print("  Field1 vs Coord2")
         compare (energycoord1, coords2, ELIMIT, eradii)
+        print("  Field2 vs Coord1")
         compare (energycoord2, coords1, ELIMIT, eradii)
     else:
         print("Moltiple models in PDB ?")
@@ -263,8 +266,3 @@ if __name__ == "__main__":
 
         if os.path.isfile(second):
             os.remove(second)
-
-
-        
-            
-        
