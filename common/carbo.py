@@ -37,6 +37,7 @@ class atom:
     self.id = 0
     self.element = ""
     self.radii = 0.0
+    self.residueid = 0
   
   def __repr__ (self):
     line = "%6d %6s %6s %10.5f %10.5f %10.5f %8.5f %3s\n"%( \
@@ -203,6 +204,7 @@ def pdbatomextractor (file=None):
           na = atom(id, a.get_name(), coords[0], coords[1], coords[2], 0.0 )
           na.id = id
           na.resname = residue.get_resname()
+          na.residueid = residue.get_id()[1]
           na.atomname = a.get_name()
           na.element = a.element
           #na.radii = mendeleev.element(a.element).vdw_radius

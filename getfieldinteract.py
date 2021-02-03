@@ -57,11 +57,17 @@ def compare (energy_coords, coords, ELIMIT, eradii):
   peratom_counter = []
   peratom_counter_multiple = []
 
+  peratom_counter_energy = []
+  peratom_counter_multiple_energy = []
+
   for ai in range(len(coords)):
     peratom_counter.append(0)
     peratom_counter_multiple.append(0)
+    peratom_counter_energy.append(0.0)
+    peratom_counter_multiple_energy.append(0.0)
 
   for iy in range(energy_coords.shape[1]):
+    print("%5d of %5d"%(iy, energy_coords.shape[1]))
     for ix in range(energy_coords.shape[0]):
         for iz in range(energy_coords.shape[2]):
             x, y, z, n = energy_coords[ix, iy, iz] 
@@ -86,37 +92,46 @@ def compare (energy_coords, coords, ELIMIT, eradii):
                     partialconter += 1
                     isnearatom[ai] = 1
                     peratom_counter_multiple[ai] += 1
+                    peratom_counter_multiple_energy[ai] += e
 
             counter_multiple += partialconter
 
             if partialconter > 1:
-                #print partialconter
                 partialconter = 1
 
-                mindistai = -1
-                mindist = 0.0
-                for ai in range(len(coords)):
-                    if isnearatom[ai] != 0:
-                        if mindistai < 0:
-                            mindist = distfromatom[ai]
-                            mindistai = ai
-                        else:
-                            if distfromatom[ai] < mindist:
-                                mindist = distfromatom[ai]
-                                mindistai = ai
+                mindist = min(distfromatom)
+                mindistai = distfromatom.index(mindist)
 
                 if mindistai >= 0:
                     peratom_counter[mindistai] += 1
+                    peratom_counter_energy[mindistai] += e
                 else:
                     print("Error")
                     exit(1)
-
-            elif partialconter  == 1:
-                for ai in range(len(coords)):
-                    if isnearatom[ai] != 0:
-                        peratom_counter[ai] += 1
-
+            elif partialconter == 1:
+                notzero = [i for i, v in enumerate(isnearatom) if v != 0]
+                if len(notzero) == 1:
+                    peratom_counter[notzero[0]] += 1
+                    peratom_counter_energy[notzero[0]] += e
+                else:
+                    print("Error internal ", notzero)
+                    exit(1)
+ 
             counter += partialconter
+
+  for ai in range(len(coords)):
+      if peratom_counter[ai] != 0 or \
+          peratom_counter_multiple[ai] != 0:
+
+              print ("ATOM %5s %5s %8d %5d %5d %10.5f %5d %10.5f"%(
+                  coords[ai].atomname, \
+                  coords[ai].resname , \
+                  coords[ai].id , \
+                  coords[ai].residueid , \
+                  peratom_counter[ai], \
+                  peratom_counter_energy[ai], \
+                  peratom_counter_multiple[ai],
+                  peratom_counter_multiple_energy[ai]))
 
 ###############################################################
 
@@ -135,10 +150,10 @@ def get_comp_values(first, energy1, energycoord1, \
         print("Getting elements radii")
         for a in coords1:
             if a.element not in eradii:
-                eradii[a.element] = mendeleev.element(a.element).vdw_radius
+                eradii[a.element] = mendeleev.element(a.element).vdw_radius/100.0
         for a in coords2:
             if a.element not in eradii:
-                eradii[a.element] = mendeleev.element(a.element).vdw_radius
+                eradii[a.element] = mendeleev.element(a.element).vdw_radius/100.0
         print("Done")
 
         compare (energycoord1, coords2, ELIMIT, eradii)
@@ -174,6 +189,8 @@ if __name__ == "__main__":
         default=False, action="store_true")
     parser.add_argument("-d","--deltaval", help="input deltaval value [defaul="+str(DELTAVAL)+"]", \
         required=False, default=DELTAVAL, type=float)
+    parser.add_argument("-g","--grid", help="Specify a grid \"xmin,xmax,ymin,ymax,zmin,zmax\"", \
+        required=False, default="", type=str)
     args = parser.parse_args()
 
     probe = args.probe
@@ -181,12 +198,36 @@ if __name__ == "__main__":
     DELTAVAL = args.stepval
 
     # compute box 
-    xmin, xmax, ymin, ymax, zmin, zmax = \
-        gridfield.compute_grid_box (args.file, DELTAVAL)
+    xmin = 0.0
+    xmax = 0.0
+    ymin = 0.0
+    ymax = 0.0
+    zmin = 0.0
+    zmax = 0.0
+
+    if args.grid == "":
+        xmin, xmax, ymin, ymax, zmin, zmax = \
+            gridfield.compute_grid_box (args.file, DELTAVAL)
+    else:
+        boxs = args.grid.split(",")
+        if len(boxs) == 6:
+            xmin = float(boxs[0])
+            xmax = float(boxs[1])
+            ymin = float(boxs[2])
+            ymax = float(boxs[3])
+            zmin = float(boxs[4])
+            zmax = float(boxs[5])
+        else:
+            print("Error in specified grid")
+            exit(1)
 
     print("Grid to use: ")
     print("%10.5f %10.5f %10.5f %10.5f %10.5f %10.5f"%(\
         xmin, xmax, ymin, ymax, zmin, zmax))
+    print("  Center: %10.5f %10.5f %10.5f"%( \
+        ((xmax-xmin)/2)+xmin, \
+        ((ymax-ymin)/2)+ymin, \
+        ((zmax-zmin)/2)+zmin))
     
     fp = open(args.file, "r")
 
@@ -203,7 +244,7 @@ if __name__ == "__main__":
         for cname in chainsfile:
             energy, energy_coords = gridfield.compute_grid_field (cname, \
                 (xmin, xmax, ymin, ymax, zmin, zmax),
-                args.probe, STEPVAL, verbose)
+                args.probe, STEPVAL, verbose, args.savekont)
 
             namestofields[cname] = (energy, energy_coords)
             

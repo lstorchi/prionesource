@@ -506,7 +506,8 @@ def compute_grid_field (filename, box, \
   zmax = box[5]
 
   if verbose:
-    print("Grid will be used: ", xmin, ymin, zmin, xmax, ymax, zmax)
+    print("Grid will be used: %10.5f %10.5f %10.5f %10.5f %10.5f %10.5f"%(\
+      xmin, ymin, zmin, xmax, ymax, zmax))
   
   toexe = "./fixpdb --remove-all-H2O --unkn-residue-to-grid-types --kout-out="+ \
        filename[:-4]+".kout "+ filename
