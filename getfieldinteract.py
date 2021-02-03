@@ -54,15 +54,27 @@ def compare (energy_coords, coords, ELIMIT, eradii):
   counter_multiple = 0
   peratom_counter = []
   peratom_counter_multiple = []
-
   peratom_counter_energy = []
   peratom_counter_multiple_energy = []
+
+  perresidue_counter = {}
+  perresidue_counter_energy = {}
+  perresidue_counter_multiple = {}
+  perresidue_counter_multiple_energy = {}
 
   for ai in range(len(coords)):
     peratom_counter.append(0)
     peratom_counter_multiple.append(0)
     peratom_counter_energy.append(0.0)
     peratom_counter_multiple_energy.append(0.0)
+
+    resuid = coords[ai].resname + "_" + \
+        str(coords[ai].residueid)
+
+    perresidue_counter[resuid] = 0
+    perresidue_counter_energy[resuid] = 0.0
+    perresidue_counter_multiple[resuid] = 0
+    perresidue_counter_multiple_energy[resuid] = 0.0
 
   for iy in range(energy_coords.shape[1]):
     print("%5d of %5d"%(iy, energy_coords.shape[1]), flush=True)
@@ -120,11 +132,20 @@ def compare (energy_coords, coords, ELIMIT, eradii):
   print ("     ATOMNAME , RESIDUENAME , ATOMINDEX , " + \
     "RESIDUEID , POINTINATOM , TOTALENERGY , MultiPOINTINATOM , " + \
         "MultiTOTALENERGY")
+
   for ai in range(len(coords)):
       if peratom_counter[ai] != 0 or \
           peratom_counter_multiple[ai] != 0:
 
-              print ("ATOM %5s , %5s , %8d , %5d , %5d , %10.5f , %5d , %10.5f"%(
+        resuid = coords[ai].resname + "_" + \
+            str(coords[ai].residueid)
+
+        perresidue_counter[resuid] += peratom_counter[ai]
+        perresidue_counter_energy[resuid] += peratom_counter_energy[ai]
+        perresidue_counter_multiple[resuid] += peratom_counter_multiple[ai]
+        perresidue_counter_multiple_energy[resuid] += peratom_counter_multiple_energy[ai]
+
+        print ("ATOM %5s , %5s , %8d , %5d , %5d , %10.5f , %5d , %10.5f"%(
                   coords[ai].atomname, \
                   coords[ai].resname , \
                   coords[ai].id , \
@@ -133,6 +154,20 @@ def compare (energy_coords, coords, ELIMIT, eradii):
                   peratom_counter_energy[ai], \
                   peratom_counter_multiple[ai],
                   peratom_counter_multiple_energy[ai]),flush=True )
+
+  print ("     RESUID , POINTINRES , TOTALENERGY , MultiPOINTINRES , " \
+       "MultiTOTALENERGY")
+  for k in perresidue_counter:
+      if perresidue_counter[k] != 0 or \
+         perresidue_counter_multiple[k] != 0:
+
+        print ("RESUID %10s , %5d , %10.5f , %5d , %10.5f"%( \
+          k, 
+          perresidue_counter[k], 
+          perresidue_counter_energy[k],
+          perresidue_counter_multiple[k],
+          perresidue_counter_multiple_energy[k]))
+
 
 ###############################################################
 
