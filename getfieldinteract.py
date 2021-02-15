@@ -9,6 +9,9 @@ import subprocess
 
 import gridfieldcentroids
 
+from scipy.spatial import distance
+import numpy as np
+
 sys.path.append("./common")
 import gridfield
 import carbo
@@ -38,6 +41,7 @@ def split_PDBfile_by_chains(filename, chainlist) :
 ###############################################################
 
 def dist (c1, c2):
+
 
     d2 = (c1[0]-c2[0])**2 + (c1[1]-c2[1])**2 + (c1[2]-c2[2])**2  
 
@@ -126,8 +130,6 @@ def compare (energy_coords, coords, ELIMIT, eradii):
                 else:
                     print("Error internal ", notzero)
                     exit(1)
- 
-            counter += partialconter
 
   print ("     ATOMNAME , RESIDUENAME , ATOMINDEX , " + \
     "RESIDUEID , POINTINATOM , TOTALENERGY , MultiPOINTINATOM , " + \
@@ -168,6 +170,73 @@ def compare (energy_coords, coords, ELIMIT, eradii):
           perresidue_counter_multiple[k],
           perresidue_counter_multiple_energy[k]))
 
+
+###############################################################
+def get_box_from_pdbs (pdb1, pdb2, d) :
+
+    xmin = float("inf")
+    ymin = float("inf")
+    zmin = float("inf")
+
+    xmax = float("-inf")
+    ymax = float("-inf")
+    zmax = float("-inf")
+
+    mols1 = carbo.pdbatomextractor (pdb1)
+    mols2 = carbo.pdbatomextractor (pdb2)
+
+    if len(mols1) == 1 and len(mols2) == 1:
+
+        coords1 = []
+        coords2 = []
+
+        for a in mols1[0]:
+            coords1.append(a.coords)
+        for a in mols2[0]:
+            coords2.append(a.coords)
+
+        distmtx = distance.cdist(coords1, coords2, 'euclidean')
+        
+        #print(d)
+        #print(distmtx)
+        idexes = np.argwhere(distmtx < d)
+        for idxs in idexes:
+            c1 = coords1[idxs[0]]
+            c2 = coords2[idxs[1]]
+
+            if xmin > c1[0]:
+                xmin = c1[0]
+            if xmax < c1[0]:
+                xmax = c1[0]
+
+            if ymin > c1[1]:
+                ymin = c1[1]
+            if ymax < c1[1]:
+                ymax = c1[1]
+
+            if zmin > c1[2]:
+                zmin = c1[2]
+            if zmax < c1[2]:
+                zmax = c1[2]
+
+            if xmin > c2[0]:
+                xmin = c2[0]
+            if xmax < c2[0]:
+                xmax = c2[0]
+
+            if ymin > c2[1]:
+                ymin = c2[1]
+            if ymax < c2[1]:
+                ymax = c2[1]
+
+            if zmin > c2[2]:
+                zmin = c2[2]
+            if zmax < c2[2]:
+                zmax = c2[2]
+
+            #print(coords1[idxs[0]], coords2[idxs[1]], dist(coords1[idxs[0]], coords2[idxs[1]]))
+
+    return xmin, ymin, zmin, xmax, ymax, zmax
 
 ###############################################################
 
@@ -229,6 +298,8 @@ if __name__ == "__main__":
         required=False, default=DELTAVAL, type=float)
     parser.add_argument("-g","--grid", help="Specify a grid \"xmin,xmax,ymin,ymax,zmin,zmax\"", \
         required=False, default="", type=str)
+    parser.add_argument("-a","--automaticgrid", help="Specify automatic grid distance ", \
+        required=False, default=0.0, type=float)
     args = parser.parse_args()
 
     probe = args.probe
@@ -236,28 +307,61 @@ if __name__ == "__main__":
     DELTAVAL = args.stepval
 
     # compute box 
-    xmin = 0.0
-    xmax = 0.0
-    ymin = 0.0
-    ymax = 0.0
-    zmin = 0.0
-    zmax = 0.0
+    xmin = float("inf")
+    ymin = float("inf")
+    zmin = float("inf")
 
-    if args.grid == "":
-        xmin, xmax, ymin, ymax, zmin, zmax = \
-            gridfield.compute_grid_box (args.file, DELTAVAL)
-    else:
-        boxs = args.grid.split(",")
-        if len(boxs) == 6:
-            xmin = float(boxs[0])
-            xmax = float(boxs[1])
-            ymin = float(boxs[2])
-            ymax = float(boxs[3])
-            zmin = float(boxs[4])
-            zmax = float(boxs[5])
+    xmax = float("-inf")
+    ymax = float("-inf")
+    zmax = float("-inf")
+
+
+    if args.automaticgrid == 0.0:
+        if args.grid == "":
+            xmin, xmax, ymin, ymax, zmin, zmax = \
+                gridfield.compute_grid_box (args.file, DELTAVAL)
         else:
-            print("Error in specified grid")
-            exit(1)
+            boxs = args.grid.split(",")
+            if len(boxs) == 6:
+                xmin = float(boxs[0])
+                xmax = float(boxs[1])
+                ymin = float(boxs[2])
+                ymax = float(boxs[3])
+                zmin = float(boxs[4])
+                zmax = float(boxs[5])
+            else:
+                print("Error in specified grid")
+                exit(1)
+
+    chainslist = []
+
+    fp = open(args.file, "r")
+    for filename in fp:
+        chainlist = ["A", "B"]
+        filename = filename.replace("\n", "")
+        chainsfile = split_PDBfile_by_chains (filename, chainlist)
+        
+        if args.automaticgrid > 0.0:
+            lxmin, lymin, lzmin, lxmax, lymax, lzmax = \
+                get_box_from_pdbs (chainsfile[0], chainsfile[1], args.automaticgrid)
+
+            if xmin > lxmin:
+                xmin = lxmin
+            if xmax < lxmax:
+                xmax = lxmax
+
+            if ymin > lymin:
+                ymin = lymin 
+            if ymax < lymax:
+                ymax = lymax
+
+            if zmin > lzmin:
+                zmin = lzmin
+            if zmax < lzmax:
+                zmax = lzmax
+
+        chainslist.append(chainsfile)
+    fp.close()
 
     print("Grid to use: ")
     print("%10.5f %10.5f %10.5f %10.5f %10.5f %10.5f"%(\
@@ -267,18 +371,9 @@ if __name__ == "__main__":
         ((ymax-ymin)/2)+ymin, \
         ((zmax-zmin)/2)+zmin))
     
-    fp = open(args.file, "r")
-
     namestofields = {}
-    chainslist = []
 
-    for filename in fp:
-        chainlist = ["A", "B"]
-        filename = filename.replace("\n", "")
-        chainsfile = split_PDBfile_by_chains (filename, chainlist)
-
-        chainslist.append(chainsfile)
-
+    for chainsfile in chainslist:
         for cname in chainsfile:
             energy, energy_coords = gridfield.compute_grid_field (cname, \
                 (xmin, xmax, ymin, ymax, zmin, zmax),
