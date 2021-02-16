@@ -334,6 +334,7 @@ if __name__ == "__main__":
                 exit(1)
 
     chainslist = []
+    namestofields = {}
 
     fp = open(args.file, "r")
     for filename in fp:
@@ -356,7 +357,6 @@ if __name__ == "__main__":
             ((ymax-ymin)/2)+ymin, \
             ((zmax-zmin)/2)+zmin))
         
-        namestofields = {}
        
         for cname in chainsfile:
             energy, energy_coords = gridfield.compute_grid_field (cname, \
