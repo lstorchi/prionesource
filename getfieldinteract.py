@@ -342,23 +342,9 @@ if __name__ == "__main__":
         chainsfile = split_PDBfile_by_chains (filename, chainlist)
         
         if args.automaticgrid > 0.0:
-            lxmin, lymin, lzmin, lxmax, lymax, lzmax = \
+            xmin, ymin, zmin, xmax, ymax, zmax = \
                 get_box_from_pdbs (chainsfile[0], chainsfile[1], args.automaticgrid)
 
-            if xmin > lxmin:
-                xmin = lxmin
-            if xmax < lxmax:
-                xmax = lxmax
-
-            if ymin > lymin:
-                ymin = lymin 
-            if ymax < lymax:
-                ymax = lymax
-
-            if zmin > lzmin:
-                zmin = lzmin
-            if zmax < lzmax:
-                zmax = lzmax
 
         chainslist.append(chainsfile)
 
@@ -372,13 +358,12 @@ if __name__ == "__main__":
         
         namestofields = {}
        
-        for chainsfile in chainslist:
-            for cname in chainsfile:
-                energy, energy_coords = gridfield.compute_grid_field (cname, \
+        for cname in chainsfile:
+            energy, energy_coords = gridfield.compute_grid_field (cname, \
                     (xmin, xmax, ymin, ymax, zmin, zmax),
                     args.probe, STEPVAL, verbose, args.savekont)
        
-                namestofields[cname] = (energy, energy_coords)
+            namestofields[cname] = (energy, energy_coords)
 
     fp.close()
 
