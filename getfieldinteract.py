@@ -346,7 +346,6 @@ if __name__ == "__main__":
             xmin, ymin, zmin, xmax, ymax, zmax = \
                 get_box_from_pdbs (chainsfile[0], chainsfile[1], args.automaticgrid)
 
-
         chainslist.append(chainsfile)
 
         print("Grid to use: ")
@@ -356,7 +355,6 @@ if __name__ == "__main__":
             ((xmax-xmin)/2)+xmin, \
             ((ymax-ymin)/2)+ymin, \
             ((zmax-zmin)/2)+zmin))
-        
        
         for cname in chainsfile:
             energy, energy_coords = gridfield.compute_grid_field (cname, \
