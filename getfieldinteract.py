@@ -50,7 +50,7 @@ def dist (c1, c2):
 
 ###############################################################
 
-def compare (energy_coords, coords, ELIMIT, eradii):
+def compare (energy_coords, energy, coords, ELIMIT, eradii):
 
   VDW = 1.0
 
@@ -262,9 +262,9 @@ def get_comp_values(first, energy1, energycoord1, \
         print("Done")
 
         print("  Field1 vs Coord2")
-        compare (energycoord1, coords2, ELIMIT, eradii)
+        compare (energycoord1, energy1, coords2, ELIMIT, eradii)
         print("  Field2 vs Coord1")
-        compare (energycoord2, coords1, ELIMIT, eradii)
+        compare (energycoord2, energy2, coords1, ELIMIT, eradii)
     else:
         print("Moltiple models in PDB ?")
 
@@ -357,11 +357,15 @@ if __name__ == "__main__":
             ((zmax-zmin)/2)+zmin))
        
         for cname in chainsfile:
+            print("Running: ", cname)
             energy, energy_coords = gridfield.compute_grid_field (cname, \
                     (xmin, xmax, ymin, ymax, zmin, zmax),
                     args.probe, STEPVAL, verbose, args.savekont)
-       
+            
             namestofields[cname] = (energy, energy_coords)
+
+            print("Shapes: ", energy_coords.shape, energy.shape)
+
 
     fp.close()
 
@@ -370,6 +374,12 @@ if __name__ == "__main__":
         second = pair[1]
 
         print(first, " VS ", second)
+        print("Shapes: ", first, namestofields[first][0].shape, \
+            namestofields[first][1].shape)
+        print("Shapes: ", second, namestofields[second][0].shape, \
+            namestofields[second][1].shape)
+
+
 
         get_comp_values(first, namestofields[first][0], namestofields[first][1], \
             second, namestofields[second][0], namestofields[second][1], args.eminilimit)
