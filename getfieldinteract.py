@@ -361,26 +361,26 @@ if __name__ == "__main__":
                 zmax = lzmax
 
         chainslist.append(chainsfile)
+
+        print("Grid to use: ")
+        print("%10.5f %10.5f %10.5f %10.5f %10.5f %10.5f"%(\
+            xmin, xmax, ymin, ymax, zmin, zmax))
+        print("  Center: %10.5f %10.5f %10.5f"%( \
+            ((xmax-xmin)/2)+xmin, \
+            ((ymax-ymin)/2)+ymin, \
+            ((zmax-zmin)/2)+zmin))
+        
+        namestofields = {}
+       
+        for chainsfile in chainslist:
+            for cname in chainsfile:
+                energy, energy_coords = gridfield.compute_grid_field (cname, \
+                    (xmin, xmax, ymin, ymax, zmin, zmax),
+                    args.probe, STEPVAL, verbose, args.savekont)
+       
+                namestofields[cname] = (energy, energy_coords)
+
     fp.close()
-
-    print("Grid to use: ")
-    print("%10.5f %10.5f %10.5f %10.5f %10.5f %10.5f"%(\
-        xmin, xmax, ymin, ymax, zmin, zmax))
-    print("  Center: %10.5f %10.5f %10.5f"%( \
-        ((xmax-xmin)/2)+xmin, \
-        ((ymax-ymin)/2)+ymin, \
-        ((zmax-zmin)/2)+zmin))
-    
-    namestofields = {}
-
-    for chainsfile in chainslist:
-        for cname in chainsfile:
-            energy, energy_coords = gridfield.compute_grid_field (cname, \
-                (xmin, xmax, ymin, ymax, zmin, zmax),
-                args.probe, STEPVAL, verbose, args.savekont)
-
-            namestofields[cname] = (energy, energy_coords)
-            
 
     for pair in chainslist:
         first = pair[0]
