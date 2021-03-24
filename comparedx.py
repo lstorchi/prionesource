@@ -18,6 +18,8 @@ if __name__ == "__main__":
     g2in = Grid(args.file2)
     g2 = g2in.resample(g1)
 
+    norig = g1.origin
+
     g1min = np.min(g1.grid) 
     g2min = np.min(g2.grid) 
 
@@ -36,8 +38,6 @@ if __name__ == "__main__":
     g2max = np.max(grid2_scaled)
 
     print(g1min, g1max, g2min, g2max) 
-
-    norig = [0.0, 0.0, 0.0]
 
     ng1 = Grid(grid1_scaled, origin=norig , \
            delta=g1.delta)
