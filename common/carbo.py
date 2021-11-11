@@ -228,7 +228,8 @@ def mol2atomextractor (file=None, readresname= False):
         if line.startswith("@<TRIPOS>ATOM"):
             line = f.readline()
             mol = []
-            while not line.startswith("@<TRIPOS>BOND"):
+            while not (line.startswith("@<TRIPOS>BOND") or \
+              line.startswith("@<TRIPOS>UNITY_ATOM_ATTR")):
               sline = line.split()
               if len(sline) != 9 and len(sline) != 10 :
                 raise Exception("Error in "+line+ " line is "+str(len(sline)))
